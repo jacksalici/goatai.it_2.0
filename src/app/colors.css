@@ -1,0 +1,41 @@
+/*
+ * GoatAI color palette — the only place colors are defined.
+ * Change a value here and it updates across the whole site.
+ */
+:root {
+  /* Neutrals */
+  --cream: #f8f7f4; /* page background, text on dark */
+  --white: #ffffff; /* cards, inputs */
+  --sand: #e0dbd1; /* borders, chips, secondary buttons */
+  --stone: #afa187; /* subtle text, placeholders */
+  --bark: #7a6e58; /* muted text */
+  --ink: #3d3629; /* main text, dark surfaces */
+
+  /* Accents */
+  --green: #87a430; /* brand */
+  --sky: #8fbfe7;
+  --coral: #ff7277;
+  --apricot: #f7b269;
+
+  /* shadcn/ui semantic tokens */
+  --background: var(--cream);
+  --foreground: var(--ink);
+  --card: var(--white);
+  --card-foreground: var(--ink);
+  --popover: var(--white);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: var(--cream);
+  --secondary: var(--sand);
+  --secondary-foreground: var(--ink);
+  --muted: var(--sand);
+  --muted-foreground: var(--bark);
+  --subtle-foreground: var(--stone);
+  --accent: var(--sand);
+  --accent-foreground: var(--ink);
+  --brand: var(--green);
+  --destructive: var(--coral);
+  --border: var(--sand);
+  --input: var(--sand);
+  --ring: var(--green);
+}
