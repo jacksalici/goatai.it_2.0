@@ -21,32 +21,13 @@ function Stop({ at, color, opacity = 1 }: { at: number; color: string; opacity?:
   return <stop offset={at} style={{ stopColor: `var(--${color})`, stopOpacity: opacity }} />;
 }
 
-/**
- * Print-like grain. Fading areas dissolve into colored specks (each pixel is
- * kept only where its opacity beats the noise), and solid areas get a soft
- * texture that keeps the colors clean.
- */
+/** Gritty grain: very fine noise, clipped to the shape and color-burned into it. */
 function Grain({ id }: { id: string }) {
   return (
-    <filter id={id} x="0" y="0" width="100%" height="100%" colorInterpolationFilters="sRGB">
-      <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" seed="7" stitchTiles="stitch" result="noise" />
-
-      {/* Dither: keep pixels whose opacity is above the noise */}
-      <feColorMatrix in="noise" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  3 0 0 0 -1" />
-      <feComponentTransfer result="threshold">
-        <feFuncA type="linear" slope="0.9" /> {/* capped below 1 so solid fills stay solid */}
-      </feComponentTransfer>
-      <feComposite in="SourceAlpha" in2="threshold" operator="arithmetic" k2="1" k3="-1" result="diff" />
-      <feComponentTransfer in="diff" result="mask">
-        <feFuncA type="linear" slope="12" />
-      </feComponentTransfer>
-      <feColorMatrix in="SourceGraphic" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0 1" result="opaque" />
-      <feComposite in="opaque" in2="mask" operator="in" result="dithered" />
-
-      {/* Soft texture on top */}
-      <feColorMatrix in="noise" values="0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0.33 0.33 0.33 0 0  0 0 0 0 1" result="mono" />
-      <feBlend in="mono" in2="dithered" mode="soft-light" result="textured" />
-      <feComposite in="textured" in2="dithered" operator="in" />
+    <filter id={id}>
+      <feTurbulence type="fractalNoise" baseFrequency="19.5" numOctaves="3" result="turbulence" />
+      <feComposite operator="in" in="turbulence" in2="SourceAlpha" result="composite" />
+      <feBlend in="SourceGraphic" in2="composite" mode="color-burn" />
     </filter>
   );
 }
