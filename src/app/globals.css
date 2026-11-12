@@ -50,9 +50,9 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  --color-sky: var(--sky);
-  --color-coral: var(--coral);
-  --color-apricot: var(--apricot);
+  --color-blue: var(--blue);
+  --color-orange: var(--orange);
+  --color-lavender: var(--lavender);
 }
 
 @utility shell {

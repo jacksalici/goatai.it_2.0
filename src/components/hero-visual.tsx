@@ -25,10 +25,10 @@ const capabilities = [
 ];
 
 const glows = [
-  { className: "fill-apricot", cx: 236, cy: 417, rx: 416, ry: 338 },
-  { className: "fill-coral", cx: 851, cy: 383, rx: 483, ry: 310 },
-  { className: "fill-brand", cx: 1092, cy: 68, rx: 326, ry: 285 },
-  { className: "fill-sky", cx: 241, cy: 26, rx: 635, ry: 320 },
+  { className: "fill-orange", cx: 236, cy: 417, rx: 416, ry: 338 },
+  { className: "fill-orange", cx: 851, cy: 383, rx: 483, ry: 310 },
+  { className: "fill-blue", cx: 1092, cy: 68, rx: 326, ry: 285 },
+  { className: "fill-lavender", cx: 241, cy: 26, rx: 635, ry: 320 },
 ];
 
 export function HeroVisual() {
@@ -47,8 +47,8 @@ export function HeroVisual() {
           <feGaussianBlur stdDeviation="100" />
         </filter>
         <g filter="url(#hero-glow)">
-          {glows.map(({ className, ...ellipse }) => (
-            <ellipse key={className} className={className} {...ellipse} />
+          {glows.map((glow, i) => (
+            <ellipse key={i} {...glow} />
           ))}
         </g>
         <g className="fill-background">

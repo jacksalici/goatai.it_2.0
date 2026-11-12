@@ -28,7 +28,7 @@ export function Journal() {
       <div className="grid gap-11 sm:grid-cols-2 sm:gap-6 md:grid-cols-3">
         {posts.map((post) => (
           <article key={post.title} className="group min-w-0 sm:last:col-span-full md:last:col-span-1">
-            <div className="relative h-55 overflow-hidden rounded-[20px] bg-sky sm:h-60">
+            <div className="relative h-55 overflow-hidden rounded-[20px] bg-lavender sm:h-60">
               {post.image ? (
                 <Image
                   src={post.image}
