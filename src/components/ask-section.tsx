@@ -3,6 +3,7 @@
 import { ArrowUp, Plus } from "lucide-react";
 import { useState } from "react";
 
+import { DotGrid } from "@/components/dot-grid";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +24,7 @@ export function AskSection() {
   return (
     <section id="ask" className="shell pt-7 pb-17.5 sm:pt-12 sm:pb-24">
       <div className="relative grid min-h-155 place-items-center overflow-hidden rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20">
-        {/* Glow and dot texture */}
-        <div
-          aria-hidden="true"
-          className="absolute bottom-21 left-1/2 h-26 w-80 -translate-x-1/2 rounded-full bg-brand/40 shadow-[0_0_120px_70px] shadow-brand/20 blur-2xl"
-        />
-        <div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-1/4 bottom-0 bg-[radial-gradient(circle,var(--background)_1px,transparent_1.35px)] bg-size-[18px_18px] opacity-25 mask-[linear-gradient(to_bottom,transparent,black)]"
-        />
+        <DotGrid />
 
         <div className="relative flex w-full flex-col items-center text-center">
           <h2 className="font-serif text-[44px] leading-[1.1] tracking-[-0.96px] text-background sm:text-[clamp(46px,5vw,64px)]">
@@ -93,7 +86,7 @@ export function AskSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => setQuestion(suggestion)}
-                className="rounded-full border-background/60 bg-foreground/35 px-3 text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
+                className="rounded-full border-background/60 bg-foreground/80 px-3 text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
               >
                 {suggestion}
               </Button>

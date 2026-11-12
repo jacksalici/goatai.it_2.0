@@ -1,6 +1,4 @@
-import { Mountain, Sprout, UserRound, type LucideIcon } from "lucide-react";
-
-export type Accent = "blue" | "orange" | "lavender";
+import type { ServiceArtName } from "@/components/service-art";
 
 export const navLinks = [
   { label: "Services", href: "#services" },
@@ -25,26 +23,22 @@ export const capabilities = [
 export const services: {
   title: string;
   body: string;
-  icon: LucideIcon;
-  accent: Accent;
+  art: ServiceArtName;
 }[] = [
   {
     title: "Humans in the loop",
     body: "Experts review, correct and teach the model. Every decision leaves a trail you can read.",
-    icon: UserRound,
-    accent: "blue",
+    art: "loop",
   },
   {
     title: "Grounded models",
     body: "Built on your data and your domain, not the whole internet. Fewer hallucinations, more answers.",
-    icon: Sprout,
-    accent: "orange",
+    art: "roots",
   },
   {
     title: "Runs where you work",
     body: "In your tools, on your servers, at the edge. Sure-footed on any terrain, like a goat.",
-    icon: Mountain,
-    accent: "lavender",
+    art: "terrain",
   },
 ];
 

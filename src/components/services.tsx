@@ -1,6 +1,7 @@
 import { ArrowUpRight } from "lucide-react";
 
 import { SectionHeading } from "@/components/section-heading";
+import { ServiceArt } from "@/components/service-art";
 import { services } from "@/lib/content";
 
 export function Services() {
@@ -26,28 +27,22 @@ export function Services() {
         {services.map((service, index) => (
           <article
             key={service.title}
-            style={{ "--accent": `var(--${service.accent})` } as React.CSSProperties}
-            className="group relative flex min-h-74 flex-col justify-between overflow-hidden rounded-3xl border bg-card/90 p-6 transition duration-200 hover:-translate-y-2 hover:border-(--accent)/50 hover:shadow-2xl hover:shadow-foreground/10 sm:min-h-68 sm:p-7.5 md:min-h-82"
+            className="group flex flex-col overflow-hidden rounded-3xl border bg-background transition duration-300 hover:-translate-y-1 hover:shadow-xl hover:shadow-foreground/5"
           >
-            {/* Accent bar and ring decorations */}
-            <span className="absolute inset-y-0 left-0 w-1.25 origin-bottom scale-y-0 bg-(--accent) transition-transform duration-250 group-hover:scale-y-100" />
-            <span className="absolute -top-20.5 -right-18 size-37.5 rounded-full border-30 border-(--accent)/30 transition-transform duration-300 group-hover:scale-114" />
-
-            <div className="relative flex items-start justify-between">
-              <span className="grid size-13.5 place-items-center rounded-2xl bg-(--accent)">
-                <service.icon className="size-6" strokeWidth={1.6} />
-              </span>
-              <span className="font-serif text-lg text-subtle-foreground">
-                {String(index + 1).padStart(2, "0")}
-              </span>
-            </div>
-
-            <div className="relative">
-              <h3 className="mb-3.5 text-xl font-semibold tracking-[-0.2px]">{service.title}</h3>
+            <div className="p-6 sm:p-7.5">
+              <div className="flex items-center justify-between">
+                <span className="font-serif text-lg text-muted-foreground">
+                  {String(index + 1).padStart(2, "0")}
+                </span>
+                <ArrowUpRight className="size-5 -translate-x-1 translate-y-1 opacity-0 transition duration-300 group-hover:translate-0 group-hover:opacity-100" />
+              </div>
+              <h3 className="mt-6 mb-3.5 text-xl font-semibold tracking-[-0.2px]">{service.title}</h3>
               <p className="max-w-78 leading-normal text-muted-foreground">{service.body}</p>
             </div>
-
-            <ArrowUpRight className="absolute right-7 bottom-7 size-5 -translate-x-2 translate-y-2 opacity-0 transition duration-200 group-hover:translate-0 group-hover:opacity-100" />
+            <ServiceArt
+              name={service.art}
+              className="mt-auto w-full transition-transform duration-500 ease-out group-hover:scale-[1.03]"
+            />
           </article>
         ))}
       </div>
