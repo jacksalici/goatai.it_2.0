@@ -177,6 +177,34 @@ function readColor(el: Element, name: string): RGB {
   return [r, g, b];
 }
 
+/* OKLab conversion (https://bottosson.github.io/posts/oklab), so blends look even to the eye. */
+const toLinear = (c: number) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const fromLinear = (c: number) =>
+  255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
+
+function rgbToOklab([r, g, b]: RGB): RGB {
+  const [lr, lg, lb] = [toLinear(r), toLinear(g), toLinear(b)];
+  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  return [
+    0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
+    1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
+    0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s,
+  ];
+}
+
+function oklabToRgb(L: number, a: number, b: number): RGB {
+  const l = (L + 0.3963377774 * a + 0.2158037573 * b) ** 3;
+  const m = (L - 0.1055613458 * a - 0.0638541728 * b) ** 3;
+  const s = (L - 0.0894841775 * a - 1.291485548 * b) ** 3;
+  return [
+    fromLinear(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+    fromLinear(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    fromLinear(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+  ];
+}
+
 /** Stable pseudo-random number in [0, 1) for a given index. */
 function seeded(i: number) {
   const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -207,7 +235,7 @@ function startDotField({
   const now = () => performance.now() / 1000;
 
   const dotColor = `rgb(${readColor(root, "background").join(",")})`;
-  const blobColors = blobs.map((b) => readColor(root, b.color));
+  const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
   const tile = document.createElement("canvas");
@@ -313,21 +341,23 @@ function startDotField({
         const px = ((x + 0.5) / gw) * asp;
         const wx = px + cfg.sway * Math.sin(py * 3.1 + drift * 0.5);
         const wy = py + cfg.sway * Math.cos(px * 2.7 - drift * 0.5);
+        // weighted mix of the blob colors, in OKLab
         let sum = 1e-9;
-        let r = 0;
-        let g = 0;
-        let b = 0;
+        let L = 0;
+        let A = 0;
+        let B = 0;
         for (let k = 0; k < centers.length; k++) {
           const [cx, cy, tightness] = centers[k];
           const w = Math.exp(-((wx - cx) ** 2 + (wy - cy) ** 2) * tightness);
           sum += w;
-          r += blobColors[k][0] * w;
-          g += blobColors[k][1] * w;
-          b += blobColors[k][2] * w;
+          L += blobColors[k][0] * w;
+          A += blobColors[k][1] * w;
+          B += blobColors[k][2] * w;
         }
-        data[i++] = r / sum;
-        data[i++] = g / sum;
-        data[i++] = b / sum;
+        const [r, g, b] = oklabToRgb(L / sum, A / sum, B / sum);
+        data[i++] = r;
+        data[i++] = g;
+        data[i++] = b;
         data[i++] = 255;
       }
     }
