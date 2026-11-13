@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 200" width="360" height="200">
+  <defs>
+    <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="19.5" numOctaves="3" result="noise"/><feColorMatrix in="noise" type="saturate" values="0" result="turbulence"/><feComposite operator="in" in="turbulence" in2="SourceAlpha" result="composite"/><feBlend in="SourceGraphic" in2="composite" mode="color-burn"/></filter>
+    <radialGradient id="glow"><stop offset="0" stop-color="#e86b49" stop-opacity="0.6"/><stop offset="1" stop-color="#e86b49" stop-opacity="0"/></radialGradient>
+    <linearGradient id="back" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#a6b4f3"/><stop offset="1" stop-color="#faf9f5" stop-opacity="0.2"/></linearGradient>
+    <linearGradient id="front" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3a6ea5" stop-opacity="0.7"/><stop offset="1" stop-color="#a6b4f3" stop-opacity="0.15"/></linearGradient>
+  </defs>
+  <g filter="url(#grain)">
+    <circle cx="262" cy="64" r="72" fill="url(#glow)"/>
+    <path d="M0 150L90 82L150 124L222 58L360 158V200H0Z" fill="url(#back)"/>
+    <path d="M0 176C80 142 160 150 230 168S330 164 360 148V200H0Z" fill="url(#front)"/>
+  </g>
+  <circle cx="262" cy="64" r="15" fill="none" stroke="#292720" stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <path d="M0 150L90 82L150 124L222 58L360 158" fill="none" stroke="#292720" stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <path d="M0 176C80 142 160 150 230 168S330 164 360 148" fill="none" stroke="#292720" stroke-width="1" vector-effect="non-scaling-stroke"/>
+  <circle cx="222" cy="58" r="2.5" fill="#292720"/>
+</svg>
