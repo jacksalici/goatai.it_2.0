@@ -11,7 +11,6 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   title: "GoatAI — Artificial Intelligence, powered by humans",
-  icons: { icon: "/favicon.png" },
   description: "Born in a university lab in Modena, we build AI and computer vision tailored to your needs.",
 };
 
