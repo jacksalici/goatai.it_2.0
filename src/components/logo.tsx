@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { cn } from "@/lib/utils";
 
 /** Renders /pictogram.svg as a mask, so it takes the current text color. */
@@ -12,13 +14,13 @@ function Pictogram() {
 
 export function Logo({ className }: { className?: string }) {
   return (
-    <a
-      href="#top"
+    <Link
+      href="/"
       aria-label="GoatAI home"
       className={cn("inline-flex items-center gap-1.5 text-[19px] font-semibold sm:text-[22px]", className)}
     >
       <Pictogram />
       GoatAI
-    </a>
+    </Link>
   );
 }

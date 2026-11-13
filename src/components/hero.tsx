@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { HeroVisual } from "@/components/hero-visual";
 import { Button } from "@/components/ui/button";
 
@@ -18,7 +20,7 @@ export function Hero() {
         </p>
         <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="w-60 sm:w-auto">
-            <a href="#ask">Start building with us</a>
+            <Link href="/contact">Start building with us</Link>
           </Button>
           <Button asChild size="lg" variant="secondary" className="w-60 sm:w-auto">
             <a href="#services">How it works</a>

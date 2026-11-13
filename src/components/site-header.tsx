@@ -1,6 +1,8 @@
 "use client";
 
 import { Menu, X } from "lucide-react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useState } from "react";
 
 import { Logo } from "@/components/logo";
@@ -10,6 +12,7 @@ import { cn } from "@/lib/utils";
 
 export function SiteHeader() {
   const [open, setOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav aria-label="Main navigation" className="shell relative z-20 flex h-21 items-center md:h-27">
@@ -22,20 +25,27 @@ export function SiteHeader() {
           open ? "flex" : "hidden",
         )}
       >
-        {navLinks.map((link) => (
-          <a
-            key={link.href}
-            href={link.href}
-            onClick={() => setOpen(false)}
-            className="px-2.5 py-3 text-sm transition-colors hover:text-brand md:p-0"
-          >
-            {link.label}
-          </a>
-        ))}
+        {navLinks.map((link) => {
+          const active = pathname === link.href || pathname.startsWith(`${link.href}/`);
+          return (
+            <Link
+              key={link.href}
+              href={link.href}
+              onClick={() => setOpen(false)}
+              aria-current={active ? "page" : undefined}
+              className={cn(
+                "px-2.5 py-3 text-sm transition-colors hover:text-brand md:p-0",
+                active && "text-brand",
+              )}
+            >
+              {link.label}
+            </Link>
+          );
+        })}
       </div>
 
       <Button asChild size="lg" className="ml-auto max-sm:hidden md:ml-9">
-        <a href="#ask">Talk to us</a>
+        <Link href="/contact">Talk to us</Link>
       </Button>
 
       <Button

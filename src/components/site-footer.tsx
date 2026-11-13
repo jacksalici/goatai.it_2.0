@@ -1,9 +1,11 @@
+import Link from "next/link";
+
 import { Logo } from "@/components/logo";
-import { footerColumns } from "@/lib/content";
+import { contact, footerColumns } from "@/lib/content";
 
 export function SiteFooter() {
   return (
-    <footer id="about" className="shell pt-6 pb-14">
+    <footer className="shell pt-6 pb-14">
       <div className="flex flex-col items-start justify-between gap-12.5 pb-12 md:flex-row md:gap-0">
         <div>
           <Logo />
@@ -21,19 +23,19 @@ export function SiteFooter() {
             <div key={column.title} className="flex flex-col gap-2.5">
               <strong className="text-[13px] font-medium text-foreground">{column.title}</strong>
               {column.links.map((link) => (
-                <a key={link.label} href={link.href} className="transition-colors hover:text-brand">
+                <Link key={link.label} href={link.href} className="transition-colors hover:text-brand">
                   {link.label}
-                </a>
+                </Link>
               ))}
             </div>
           ))}
           <div className="flex w-full flex-col gap-2.5 sm:w-auto">
             <strong className="text-[13px] font-medium text-foreground">Contact</strong>
-            <a href="mailto:info@goatai.it" className="transition-colors hover:text-brand">
-              info@goatai.it
+            <a href={`mailto:${contact.email}`} className="transition-colors hover:text-brand">
+              {contact.email}
             </a>
-            <a href="tel:+390592058776" className="transition-colors hover:text-brand">
-              +39 059 2058776
+            <a href={contact.phoneHref} className="transition-colors hover:text-brand">
+              {contact.phone}
             </a>
             <span>Via Vivarelli 2, Modena</span>
           </div>

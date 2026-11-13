@@ -19,7 +19,10 @@ npm run build  # production build
 ```
 src/app/colors.css   # color palette — edit to re-theme the site
 src/app/globals.css  # Tailwind setup, fonts, breakpoints
-src/app/page.tsx     # page composition
+src/app/layout.tsx   # shared header + footer
+src/app/page.tsx     # home
+src/app/*/page.tsx   # about, team, contact, research, blog, case-studies
 src/components/      # page sections + shadcn/ui primitives in ui/
-src/lib/content.ts   # copy: services, posts, links
+src/lib/content.ts   # nav, footer, services, contact details
+src/lib/*.ts         # posts, case studies, research, team (placeholder copy)
 ```

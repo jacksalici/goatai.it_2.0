@@ -1,10 +1,11 @@
 import type { ServiceArtName } from "@/components/service-art";
 
 export const navLinks = [
-  { label: "How it works", href: "#services" },
-  { label: "Research", href: "#journal" },
-  { label: "About", href: "#about" },
-  { label: "Careers", href: "#ask" },
+  { label: "Research", href: "/research" },
+  { label: "Case studies", href: "/case-studies" },
+  { label: "Blog", href: "/blog" },
+  { label: "About", href: "/about" },
+  { label: "Team", href: "/team" },
 ];
 
 /** Hero labels: x / y are fractions of the box (0–1), snapped to the nearest dot. */
@@ -42,41 +43,31 @@ export const services: {
   },
 ];
 
-export const posts: { title: string; tag: string; meta: string; image?: string }[] = [
-  {
-    title: "Teaching models to see people, without filming people",
-    tag: "Research",
-    meta: "ICCV 2021 · Synthetic data",
-  },
-  {
-    title: "Reading human behavior, even when half of it is hidden",
-    tag: "Research",
-    meta: "TOMM 2022 · Occlusion",
-  },
-  {
-    title: "Best Demo Award: a small herd at ECCV",
-    tag: "Award",
-    meta: "ECCV 2020",
-  },
-];
-
 export const suggestions = ["Run a feasibility study", "Build a prototype", "Talk to a human"];
 
 export const footerColumns = [
   {
     title: "Solutions",
     links: [
-      { label: "Consulting", href: "#services" },
-      { label: "Prototyping", href: "#services" },
-      { label: "Scale-up", href: "#services" },
+      { label: "How it works", href: "/#services" },
+      { label: "Case studies", href: "/case-studies" },
+      { label: "Research", href: "/research" },
     ],
   },
   {
     title: "Company",
     links: [
-      { label: "About", href: "#about" },
-      { label: "Research", href: "#journal" },
-      { label: "Careers", href: "#ask" },
+      { label: "About", href: "/about" },
+      { label: "Team", href: "/team" },
+      { label: "Blog", href: "/blog" },
+      { label: "Contact", href: "/contact" },
     ],
   },
 ];
+
+export const contact = {
+  email: "info@goatai.it",
+  phone: "+39 059 2058776",
+  phoneHref: "tel:+390592058776",
+  address: "Via Vivarelli 2, 41125 Modena, Italy",
+};
