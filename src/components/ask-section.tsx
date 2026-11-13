@@ -3,7 +3,7 @@
 import { ArrowUp, Plus } from "lucide-react";
 import { useState } from "react";
 
-import { DotGrid } from "@/components/dot-grid";
+import { DotField } from "@/components/dot-field";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,15 +23,19 @@ export function AskSection() {
 
   return (
     <section id="ask" className="shell pt-7 pb-17.5 sm:pt-12 sm:pb-24">
-      <div className="relative grid min-h-155 place-items-center overflow-hidden rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20">
-        <DotGrid />
-
+      <DotField
+        gradient={false}
+        dotColor="brand"
+        fade
+        className="grid min-h-155 place-items-center rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20"
+      >
         <div className="relative flex w-full flex-col items-center text-center">
           <h2 className="font-serif text-[44px] leading-[1.1] tracking-[-0.96px] text-background sm:text-[clamp(46px,5vw,64px)]">
             Ask the goat <em>anything.</em>
           </h2>
           <p className="mt-5 mb-7.5 text-[15px] text-background/70 sm:text-[17px]">
-            Tell us what you’re working on. A human will read it, the goat will help.
+            Tell us what you’re working on. A human will read it, the goat will
+            help.
           </p>
 
           <form
@@ -103,7 +107,7 @@ export function AskSection() {
             </div>
           )}
         </div>
-      </div>
+      </DotField>
     </section>
   );
 }

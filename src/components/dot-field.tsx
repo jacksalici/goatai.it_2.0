@@ -44,6 +44,11 @@ export const dotFieldDefaults = {
   maxOpen: 3, // max automatic labels open at once
   morphMs: 700, // dot → chip morph duration
   hoverLinger: 0.9, // seconds a label stays open after the cursor leaves
+
+  // Fade (only with `fade`)
+  fadeStart: 0.1, // 0–1 from the top: where dots begin to appear
+  fadeMin: 0.04, // dot opacity at the top of the fade
+  fadeMax: 0.95, // dot opacity at the bottom
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
@@ -52,23 +57,84 @@ export type DotFieldLabel = { text: string; x: number; y: number };
 /** Gradient color areas: palette variable, position (0–1 from top-left), drift and tightness. */
 const blobs = [
   { color: "blue", x: 0.18, y: 0.2, ax: 0.08, ay: 0.1, fx: 1.1, fy: 0.9, k: 1 },
-  { color: "blue", x: 0.48, y: 0.05, ax: 0.1, ay: 0.06, fx: 0.7, fy: 1.3, k: 1.3 },
-  { color: "lavender", x: 0.9, y: 0.18, ax: 0.05, ay: 0.1, fx: 0.8, fy: 1.2, k: 0.75 },
-  { color: "orange", x: 0.08, y: 0.92, ax: 0.07, ay: 0.08, fx: 1, fy: 0.8, k: 1.2 },
-  { color: "lavender", x: 0.62, y: 0.88, ax: 0.12, ay: 0.1, fx: 0.6, fy: 1.1, k: 1 },
-  { color: "orange", x: 0.95, y: 0.9, ax: 0.04, ay: 0.08, fx: 0.9, fy: 0.7, k: 1.4 },
+  {
+    color: "blue",
+    x: 0.48,
+    y: 0.05,
+    ax: 0.1,
+    ay: 0.06,
+    fx: 0.7,
+    fy: 1.3,
+    k: 1.3,
+  },
+  {
+    color: "lavender",
+    x: 0.9,
+    y: 0.18,
+    ax: 0.05,
+    ay: 0.1,
+    fx: 0.8,
+    fy: 1.2,
+    k: 0.75,
+  },
+  {
+    color: "orange",
+    x: 0.08,
+    y: 0.92,
+    ax: 0.07,
+    ay: 0.08,
+    fx: 1,
+    fy: 0.8,
+    k: 1.2,
+  },
+  {
+    color: "lavender",
+    x: 0.62,
+    y: 0.88,
+    ax: 0.12,
+    ay: 0.1,
+    fx: 0.6,
+    fy: 1.1,
+    k: 1,
+  },
+  {
+    color: "orange",
+    x: 0.95,
+    y: 0.9,
+    ax: 0.04,
+    ay: 0.08,
+    fx: 0.9,
+    fy: 0.7,
+    k: 1.4,
+  },
 ];
+
+const noLabels: DotFieldLabel[] = [];
 
 /* -------------------------------------------------------------------------- */
 
+/**
+ * Animated dot field. Children render on top of the effect.
+ * - `gradient`: moving color background; when off, set the background via `className`.
+ * - `dotColor`: palette variable the dots are drawn with.
+ * - `fade`: dots fade in from the top.
+ */
 export function DotField({
-  labels,
+  labels = noLabels,
+  gradient = true,
+  dotColor = "background",
+  fade = false,
   settings,
   className,
+  children,
 }: {
-  labels: DotFieldLabel[];
+  labels?: DotFieldLabel[];
+  gradient?: boolean;
+  dotColor?: string;
+  fade?: boolean;
   settings?: Partial<DotFieldSettings>;
   className?: string;
+  children?: React.ReactNode;
 }) {
   const cfg = { ...dotFieldDefaults, ...settings };
   const rootRef = useRef<HTMLDivElement>(null);
@@ -81,20 +147,26 @@ export function DotField({
     () =>
       startDotField({
         root: rootRef.current!,
-        gradientCanvas: gradientRef.current!,
-        grainCanvas: grainRef.current!,
+        gradientCanvas: gradientRef.current,
+        grainCanvas: grainRef.current,
         dotCanvas: dotsRef.current!,
         chips: chipRefs.current,
         labels,
+        dotColor,
+        fade,
         cfg: { ...dotFieldDefaults, ...settings },
       }),
-    [labels, settings],
+    [labels, dotColor, fade, settings],
   );
 
   return (
     <div
       ref={rootRef}
-      className={cn("relative isolate overflow-hidden bg-blue select-none", className)}
+      className={cn(
+        "relative isolate overflow-hidden",
+        gradient && "bg-blue",
+        className,
+      )}
       style={
         {
           "--dot": `${cfg.labelDot * 2}px`,
@@ -103,14 +175,26 @@ export function DotField({
         } as React.CSSProperties
       }
     >
-      <canvas ref={gradientRef} aria-hidden="true" className="absolute inset-0 size-full" />
+      {gradient && (
+        <>
+          <canvas
+            ref={gradientRef}
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 size-full"
+          />
+          <canvas
+            ref={grainRef}
+            aria-hidden="true"
+            className="absolute inset-0 -z-10 size-full mix-blend-overlay"
+            style={{ opacity: cfg.grain }}
+          />
+        </>
+      )}
       <canvas
-        ref={grainRef}
+        ref={dotsRef}
         aria-hidden="true"
-        className="absolute inset-0 size-full mix-blend-overlay"
-        style={{ opacity: cfg.grain }}
+        className="absolute inset-0 -z-10 size-full"
       />
-      <canvas ref={dotsRef} aria-hidden="true" className="absolute inset-0 size-full" />
 
       {labels.map((label, i) => (
         <div
@@ -120,7 +204,7 @@ export function DotField({
           }}
           data-open="false"
           className={cn(
-            "group pointer-events-none absolute top-0 left-0 flex size-(--dot) items-center justify-center overflow-hidden rounded-full bg-background",
+            "group pointer-events-none absolute top-0 left-0 flex select-none size-(--dot) items-center justify-center overflow-hidden rounded-full bg-background",
             "transition-[width,height,box-shadow] duration-(--morph) ease-[cubic-bezier(0.34,1.35,0.64,1)]",
             "data-[open=true]:h-8 data-[open=true]:w-(--chip-w) data-[open=true]:shadow-lg data-[open=true]:shadow-foreground/10 sm:data-[open=true]:h-9",
           )}
@@ -130,6 +214,8 @@ export function DotField({
           </span>
         </div>
       ))}
+
+      {children}
     </div>
   );
 }
@@ -145,6 +231,7 @@ type Dot = {
   y: number;
   wave: number; // diagonal offset for the shimmer
   base: number;
+  alpha: number;
   scale: number;
   vs: number;
   dx: number;
@@ -178,15 +265,23 @@ function readColor(el: Element, name: string): RGB {
 }
 
 /* OKLab conversion (https://bottosson.github.io/posts/oklab), so blends look even to the eye. */
-const toLinear = (c: number) => ((c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+const toLinear = (c: number) =>
+  (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 const fromLinear = (c: number) =>
-  255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
+  255 *
+  (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
 
 function rgbToOklab([r, g, b]: RGB): RGB {
   const [lr, lg, lb] = [toLinear(r), toLinear(g), toLinear(b)];
-  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
-  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
-  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
+  const l = Math.cbrt(
+    0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb,
+  );
+  const m = Math.cbrt(
+    0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb,
+  );
+  const s = Math.cbrt(
+    0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb,
+  );
   return [
     0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
@@ -218,23 +313,27 @@ function startDotField({
   dotCanvas,
   chips,
   labels,
+  dotColor: dotColorName,
+  fade,
   cfg,
 }: {
   root: HTMLDivElement;
-  gradientCanvas: HTMLCanvasElement;
-  grainCanvas: HTMLCanvasElement;
+  gradientCanvas: HTMLCanvasElement | null;
+  grainCanvas: HTMLCanvasElement | null;
   dotCanvas: HTMLCanvasElement;
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
+  dotColor: string;
+  fade: boolean;
   cfg: DotFieldSettings;
 }) {
-  const gctx = gradientCanvas.getContext("2d")!;
-  const nctx = grainCanvas.getContext("2d")!;
+  const gctx = gradientCanvas?.getContext("2d");
+  const nctx = grainCanvas?.getContext("2d");
   const ctx = dotCanvas.getContext("2d")!;
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const now = () => performance.now() / 1000;
 
-  const dotColor = `rgb(${readColor(root, "background").join(",")})`;
+  const dotColor = `rgb(${readColor(root, dotColorName).join(",")})`;
   const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
@@ -247,7 +346,7 @@ function startDotField({
     noise.data[i + 3] = 255;
   }
   tctx.putImageData(noise, 0, 0);
-  const grainPattern = nctx.createPattern(tile, "repeat")!;
+  const grainPattern = nctx?.createPattern(tile, "repeat");
 
   const anchors: Anchor[] = chips.map((el) => ({
     el,
@@ -263,7 +362,7 @@ function startDotField({
   let W = 0;
   let H = 0;
   let dots: Dot[] = [];
-  let gradient: ImageData;
+  let gradient: ImageData | undefined;
   const ripples: Ripple[] = [];
   const mouse = { x: 0, y: 0, inside: false };
 
@@ -282,11 +381,18 @@ function startDotField({
     dotCanvas.width = W * dpr;
     dotCanvas.height = H * dpr;
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    grainCanvas.width = W;
-    grainCanvas.height = H;
-    gradientCanvas.width = Math.ceil(W / 8);
-    gradientCanvas.height = Math.ceil(H / 8);
-    gradient = gctx.createImageData(gradientCanvas.width, gradientCanvas.height);
+    if (grainCanvas) {
+      grainCanvas.width = W;
+      grainCanvas.height = H;
+    }
+    if (gradientCanvas && gctx) {
+      gradientCanvas.width = Math.ceil(W / 8);
+      gradientCanvas.height = Math.ceil(H / 8);
+      gradient = gctx.createImageData(
+        gradientCanvas.width,
+        gradientCanvas.height,
+      );
+    }
 
     const spacing = W < 640 ? cfg.spacingMobile : cfg.spacing;
     const cols = Math.floor((W - spacing * 1.9) / spacing) + 1;
@@ -306,14 +412,21 @@ function startDotField({
 
     dots = [];
     for (let r = 0; r < rows; r++) {
+      const y = oy + r * spacing;
+      const f = Math.max(0, (y / H - cfg.fadeStart) / (1 - cfg.fadeStart));
+      const alpha = fade
+        ? cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6
+        : 1;
       for (let c = 0; c < cols; c++) {
         if (anchorCells.has(r * cols + c)) continue;
         const rv = seeded(r * 97 + c);
         dots.push({
           x: ox + c * spacing,
-          y: oy + r * spacing,
+          y,
           wave: (c + r) * 0.35 - seeded(r * 97 + c + 999) * 2,
-          base: rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
+          base:
+            rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
+          alpha,
           scale: 1,
           vs: 0,
           dx: 0,
@@ -327,6 +440,7 @@ function startDotField({
   }
 
   function drawGradient(drift: number) {
+    if (!gctx || !gradient) return;
     const { width: gw, height: gh, data } = gradient;
     const asp = W / H;
     const centers = blobs.map((b) => [
@@ -365,6 +479,7 @@ function startDotField({
   }
 
   function drawGrain() {
+    if (!nctx || !grainPattern) return;
     nctx.save();
     nctx.translate(-Math.random() * 128, -Math.random() * 128);
     nctx.fillStyle = grainPattern;
@@ -445,9 +560,15 @@ function startDotField({
       d.dy += d.vy * dt * 6;
 
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
-      ctx.globalAlpha = 0.88 + 0.12 * wave;
+      ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
       ctx.beginPath();
-      ctx.arc(d.x + d.dx, d.y + d.dy, Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer)), 0, Math.PI * 2);
+      ctx.arc(
+        d.x + d.dx,
+        d.y + d.dy,
+        Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer)),
+        0,
+        Math.PI * 2,
+      );
       ctx.fill();
     }
     ctx.globalAlpha = 1;
@@ -518,7 +639,12 @@ function startDotField({
 
   function onDown(e: PointerEvent) {
     const rect = root.getBoundingClientRect();
-    ripples.push({ x: e.clientX - rect.left, y: e.clientY - rect.top, t: 0, strength: cfg.ripple });
+    ripples.push({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top,
+      t: 0,
+      strength: cfg.ripple,
+    });
   }
 
   build();
@@ -527,7 +653,9 @@ function startDotField({
 
   const resizeObserver = new ResizeObserver(build);
   resizeObserver.observe(root);
-  const visibilityObserver = new IntersectionObserver(([entry]) => (visible = entry.isIntersecting));
+  const visibilityObserver = new IntersectionObserver(
+    ([entry]) => (visible = entry.isIntersecting),
+  );
   visibilityObserver.observe(root);
   root.addEventListener("pointermove", onMove);
   root.addEventListener("pointerleave", onLeave);
