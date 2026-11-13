@@ -10,6 +10,10 @@ export function SiteFooter() {
           <p className="mt-2.5 text-sm text-brand">
             Artificial Intelligence, <em className="font-serif text-base">powered by humans.</em>
           </p>
+          <p className="mt-4 max-w-72 text-sm leading-normal text-muted-foreground">
+            A spin-off of the University of Modena and Reggio Emilia, born inside a computer
+            vision research lab.
+          </p>
         </div>
 
         <div className="flex w-full flex-wrap gap-10 text-sm text-muted-foreground sm:flex-nowrap sm:justify-between md:w-auto md:gap-[clamp(45px,6vw,80px)]">
@@ -25,10 +29,13 @@ export function SiteFooter() {
           ))}
           <div className="flex w-full flex-col gap-2.5 sm:w-auto">
             <strong className="text-[13px] font-medium text-foreground">Contact</strong>
-            <a href="mailto:info@goat.ai" className="transition-colors hover:text-brand">
-              info@goat.ai
+            <a href="mailto:info@goatai.it" className="transition-colors hover:text-brand">
+              info@goatai.it
             </a>
-            <span>Mountain time, everywhere</span>
+            <a href="tel:+390592058776" className="transition-colors hover:text-brand">
+              +39 059 2058776
+            </a>
+            <span>Via Vivarelli 2, Modena</span>
           </div>
         </div>
       </div>

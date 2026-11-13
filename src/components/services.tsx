@@ -8,7 +8,7 @@ export function Services() {
   return (
     <section id="services" className="shell py-17 sm:py-24">
       <SectionHeading
-        eyebrow="What we do"
+        eyebrow="How it works"
         title={
           <>
             Machine precision.
@@ -18,8 +18,8 @@ export function Services() {
         }
       >
         <p className="mb-1 text-[17px] leading-normal text-muted-foreground">
-          Every model is shaped by the experts who use it.
-          <br className="max-md:hidden" /> No black boxes, no noise — just tools that earn trust.
+          Twenty years of research in computer vision and human behavior,
+          <br className="max-md:hidden" /> put to work in transportation, manufacturing, retail and safety.
         </p>
       </SectionHeading>
 

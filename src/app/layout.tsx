@@ -11,8 +11,8 @@ const newsreader = Newsreader({
 
 export const metadata: Metadata = {
   title: "GoatAI — Artificial Intelligence, powered by humans",
-  description: "Based in Modena, we build AI solutions tailored to our clients' needs.",
   icons: { icon: "/favicon.png" },
+  description: "Born in a university lab in Modena, we build AI and computer vision tailored to your needs.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

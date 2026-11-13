@@ -1,19 +1,18 @@
 import { cn } from "@/lib/utils";
 
-/** Placeholder wordmarks, each with its own typographic style. */
+/** Press wordmarks, each with its own typographic style. */
 const clients = [
-  { name: "Northfield" },
-  { name: "alpenlab" },
-  { name: "Corteccia", className: "font-serif text-[30px] font-normal italic" },
-  { name: "MOSSWORK", className: "text-xl tracking-[0.12em]" },
-  { name: "Halden", className: "font-serif text-[29px]" },
-  { name: "kiln." },
+  { name: "il Resto del Carlino", className: "font-serif font-normal italic" },
+  { name: "la Repubblica", className: "font-serif font-normal" },
+  { name: "Radio 24" },
+  { name: "SKY TG24", className: "tracking-[0.08em]" },
+  { name: "TVQui" },
 ];
 
 export function Clients() {
   return (
-    <section aria-label="Clients" className="shell pt-15.5 pb-10 text-center sm:pt-[70px] md:pt-23 md:pb-18.5">
-      <p className="mb-7 text-sm text-muted-foreground">Trusted by teams who still believe in people</p>
+    <section aria-label="Press" className="shell pt-15.5 pb-10 text-center sm:pt-[70px] md:pt-23 md:pb-18.5">
+      <p className="mb-7 text-sm text-muted-foreground">They talked about the goat</p>
       <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4.5 text-subtle-foreground md:flex-nowrap md:justify-between">
         {clients.map((client) => (
           <span

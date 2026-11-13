@@ -34,8 +34,8 @@ export function AskSection() {
             Ask the goat <em>anything.</em>
           </h2>
           <p className="mt-5 mb-7.5 text-[15px] text-background/70 sm:text-[17px]">
-            Tell us what you’re working on. A human will read it, the goat will
-            help.
+            Tell us the problem you want to solve. A human will read it, the goat
+            will help.
           </p>
 
           <form
@@ -49,7 +49,7 @@ export function AskSection() {
               id="goat-question"
               value={question}
               onChange={(event) => setQuestion(event.target.value)}
-              placeholder="How could GoatAI help my team this quarter?"
+              placeholder="Could computer vision make my production line safer?"
               className="mb-4 h-auto border-0 p-0 text-[15px] shadow-none placeholder:text-subtle-foreground focus-visible:ring-0 sm:text-lg md:text-lg"
             />
             <div className="flex items-center justify-between">

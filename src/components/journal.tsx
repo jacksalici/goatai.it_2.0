@@ -20,7 +20,7 @@ export function Journal() {
     <section id="journal" className="shell py-17 sm:py-24">
       <SectionHeading eyebrow="Field notes" title="From the pasture.">
         <a href="#journal" className="group inline-flex items-center gap-2 font-medium">
-          All posts
+          All notes
           <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" strokeWidth={1.33} />
         </a>
       </SectionHeading>
