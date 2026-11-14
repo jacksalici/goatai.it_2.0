@@ -306,6 +306,29 @@ function seeded(i: number) {
   return x - Math.floor(x);
 }
 
+/**
+ * Lays out the grid so the gap from the outer dots to the edge is the same on
+ * all four sides. A fixed spacing only centers each axis on its own, so the
+ * spacing is nudged (at most ±6%) to the value that best evens out the two
+ * margins, preferring values close to the target.
+ */
+function fitGrid(W: number, H: number, target: number) {
+  let best = { spacing: target, cols: 1, rows: 1, ox: 0, oy: 0 };
+  let bestCost = Infinity;
+  for (let s = target * 0.94; s <= target * 1.06; s += 0.01) {
+    const cols = Math.floor((W - s * 1.9) / s) + 1;
+    const rows = Math.floor((H - s * 1.9) / s) + 1;
+    const ox = (W - (cols - 1) * s) / 2;
+    const oy = (H - (rows - 1) * s) / 2;
+    const cost = Math.abs(ox - oy) + 0.2 * Math.abs(s - target);
+    if (cost < bestCost) {
+      bestCost = cost;
+      best = { spacing: s, cols, rows, ox, oy };
+    }
+  }
+  return best;
+}
+
 function startDotField({
   root,
   gradientCanvas,
@@ -394,11 +417,11 @@ function startDotField({
       );
     }
 
-    const spacing = W < 640 ? cfg.spacingMobile : cfg.spacing;
-    const cols = Math.floor((W - spacing * 1.9) / spacing) + 1;
-    const rows = Math.floor((H - spacing * 1.9) / spacing) + 1;
-    const ox = (W - (cols - 1) * spacing) / 2;
-    const oy = (H - (rows - 1) * spacing) / 2;
+    const { spacing, cols, rows, ox, oy } = fitGrid(
+      W,
+      H,
+      W < 640 ? cfg.spacingMobile : cfg.spacing,
+    );
 
     // Label dots snap to the nearest grid point and are drawn by their chip.
     const anchorCells = new Set<number>();
