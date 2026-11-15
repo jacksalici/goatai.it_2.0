@@ -82,5 +82,6 @@ _Experimental._ A more refined Faded dot field: the dots also go out of focus to
 
 - Do take every color from the palette in `colors.css`, never a hard-coded value.
 - Do keep labels short (one to three words): an open pill must fit inside the field on mobile.
+- Do give any semi-transparent element placed over the field (buttons, chips, messages) a backdrop blur, so the dots behind it turn into a soft texture and never compete with the text. Even when the text is already readable, keep it as a rule. Keep the blur close to the dot size and the fill light: a blur much larger than the dots spreads them until they vanish, and the element looks like a solid fill instead of glass. When matching a Figma design, its blur value is about twice the CSS `blur()` value.
 
 _More rules to be defined as the variants evolve._

@@ -91,7 +91,7 @@ export function AskSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => setQuestion(suggestion)}
-                className="rounded-full border-background/60 bg-foreground/80 px-3 text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
+                className="rounded-full border-background/60 bg-foreground/20 px-3 backdrop-blur-xs text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
               >
                 {suggestion}
               </Button>
@@ -101,7 +101,7 @@ export function AskSection() {
           {sent && (
             <div
               role="status"
-              className="mt-4.5 w-full max-w-190 rounded-2xl border border-background/30 bg-foreground/70 px-4.5 py-3 text-left text-sm text-background"
+              className="mt-4.5 w-full max-w-190 rounded-2xl border border-background/30 bg-foreground/50 px-4.5 backdrop-blur-xs py-3 text-left text-sm text-background"
             >
               <span className="font-medium text-brand">Received</span>
               <p className="mt-0.5">“{sent}” — the herd will be in touch.</p>
