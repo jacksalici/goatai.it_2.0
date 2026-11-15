@@ -37,6 +37,7 @@ Every knob lives in `dotFieldDefaults` at the top of the source file. A single i
 | Ripple | `ripple`, `rippleSpeed`, `rippleLife` | Strength, speed and duration of the click wave |
 | Labels | `labelEvery`, `labelHold`, `maxOpen`, `morphMs`, `hoverLinger` | Timing of automatic labels and of the morph |
 | Fade | `fadeStart`, `fadeMin`, `fadeMax` | Where and how strongly dots fade toward the top (only with `fade`) |
+| Depth fade | `depthKnee`, `depthKneeOpacity`, `depthSharpFrom`, `depthBlur` | Opacity ramp and progressive blur (only with `fade="depth"`) |
 
 The position, color and drift of each gradient blob is set in the `blobs` array, right below the settings.
 
@@ -46,7 +47,7 @@ The position, color and drift of each gradient blob is set in the `blobs` array,
 |---|---|---|
 | `gradient` | `true` | Draws the animated gradient and grain. When `false`, set the background with `className`. |
 | `dotColor` | `"background"` | Palette variable the dots are drawn with. |
-| `fade` | `false` | Dots fade in from the top. |
+| `fade` | `false` | `true`: dots fade in from the top. `"depth"`: they also blur toward the top (see Depth dot field). |
 | `labels` | none | Label texts and positions, `x` and `y` from 0 to 1. Each snaps to the nearest grid point. |
 | `settings` | none | Overrides for any value in `dotFieldDefaults`. |
 
@@ -64,8 +65,18 @@ Also called "dot field over gradient". Cream dots on the animated blue / periwin
 
 Brand-blue dots on a flat dark background (`--ink`). Dots fade in from the top, so the upper part of the section stays almost empty and the content sits on a calm area. No gradient, no grain, no labels.
 
-- **Used in:** the "Ask the goat anything" section ([src/components/ask-section.tsx](../src/components/ask-section.tsx)), on the home and contact pages.
+- **Used in:** nowhere at the moment (the "Ask" section is trying the Depth dot field).
 - **Code:** `<DotField gradient={false} dotColor="brand" fade className="bg-foreground …" />`
+
+### Depth dot field
+
+_Experimental._ A more refined Faded dot field: the dots also go out of focus toward the top, like a shallow depth of field. Same colors and background as the Faded dot field. Both effects depend only on the height, and each is tuned by its own settings (see Settings).
+
+- **Opacity.** A vertical mask that multiplies the dot opacity: it grows from invisible at the top edge to full at the bottom edge in two linear segments. Up to a knee (`depthKnee`) it climbs slowly to a low opacity (`depthKneeOpacity`), then it climbs steeply to full. The top stays faint and most of the growth happens lower down, like an ease-in. The last row sits one spacing above the edge, so it is just under full.
+- **Blur.** A progressive gaussian blur: dots are sharp near the bottom, up to a set height (`depthSharpFrom`), then the blur grows linearly to its maximum at the top (`depthBlur`, a Figma/CSS-style radius expressed as a fraction of the spacing, so it scales with the grid). The blur zone must overlap the visible part of the opacity ramp: if it only covers rows that are nearly invisible, it cannot be seen. The blur spreads a dot without changing its total opacity; overlapping halos stack as layers of the same color.
+- **How it is drawn.** Each blurred row uses pre-rendered sprites (one per row and dot size), made once per resize, so the animation cost is the same as the Faded dot field. The blur scales with the dot when it grows under the cursor.
+- **Used in:** the "Ask the goat anything" section ([src/components/ask-section.tsx](../src/components/ask-section.tsx)), on the home and contact pages.
+- **Code:** `<DotField gradient={false} dotColor="brand" fade="depth" className="bg-foreground …" />`
 
 ## Do / Don't
 

@@ -26,7 +26,7 @@ export function AskSection() {
       <DotField
         gradient={false}
         dotColor="brand"
-        fade
+        fade="depth"
         className="grid min-h-155 place-items-center rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20"
       >
         <div aria-hidden="true" className="aurora-glow absolute inset-0 -z-20 [--glow-y:26%]" />

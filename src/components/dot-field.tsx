@@ -49,6 +49,12 @@ export const dotFieldDefaults = {
   fadeStart: 0.1, // 0–1 from the top: where dots begin to appear
   fadeMin: 0.04, // dot opacity at the top of the fade
   fadeMax: 0.95, // dot opacity at the bottom
+
+  // Depth fade (only with `fade="depth"`)
+  depthKnee: 0.30, // 0–1 from the top: where the opacity ramp turns steep
+  depthKneeOpacity: 0.2, // dot opacity at the knee (0 at the top, 1 at the bottom)
+  depthSharpFrom: 0.85, // 0–1 from the top: below this, dots are sharp
+  depthBlur: 0.35, // blur radius at the top, as a fraction of the spacing
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
@@ -117,7 +123,7 @@ const noLabels: DotFieldLabel[] = [];
  * Animated dot field. Children render on top of the effect.
  * - `gradient`: moving color background; when off, set the background via `className`.
  * - `dotColor`: palette variable the dots are drawn with.
- * - `fade`: dots fade in from the top.
+ * - `fade`: dots fade in from the top; `"depth"` also blurs them toward the top.
  */
 export function DotField({
   labels = noLabels,
@@ -131,7 +137,7 @@ export function DotField({
   labels?: DotFieldLabel[];
   gradient?: boolean;
   dotColor?: string;
-  fade?: boolean;
+  fade?: boolean | "depth";
   settings?: Partial<DotFieldSettings>;
   className?: string;
   children?: React.ReactNode;
@@ -226,7 +232,10 @@ export function DotField({
 
 type RGB = [number, number, number];
 
+type Sprite = { canvas: HTMLCanvasElement; half: number };
+
 type Dot = {
+  sprite?: Sprite; // pre-blurred dot, drawn instead of a sharp circle
   x: number;
   y: number;
   wave: number; // diagonal offset for the shimmer
@@ -300,6 +309,58 @@ function oklabToRgb(L: number, a: number, b: number): RGB {
   ];
 }
 
+/**
+ * Pre-renders a dot of `radius` px with a gaussian blur of `sigma` px, in
+ * device pixels. The blur is done by hand (separable kernel) because canvas
+ * `filter` is not available everywhere. It spreads the dot without changing
+ * its total opacity.
+ */
+function blurredDot([r, g, b]: RGB, radius: number, sigma: number, dpr: number): Sprite {
+  const half = radius + Math.ceil(3 * sigma) + 1;
+  const n = Math.ceil(half * 2 * dpr);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = n;
+  const c = canvas.getContext("2d")!;
+  c.beginPath();
+  c.arc(n / 2, n / 2, radius * dpr, 0, Math.PI * 2);
+  c.fill();
+  const img = c.getImageData(0, 0, n, n);
+
+  const s = sigma * dpr;
+  const kr = Math.ceil(3 * s);
+  const kernel: number[] = [];
+  let ksum = 0;
+  for (let i = -kr; i <= kr; i++) {
+    const w = Math.exp(-(i * i) / (2 * s * s));
+    kernel.push(w);
+    ksum += w;
+  }
+  let a = Float32Array.from({ length: n * n }, (_, i) => img.data[i * 4 + 3] / 255);
+  for (const horizontal of [true, false]) {
+    const out = new Float32Array(n * n);
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        let v = 0;
+        for (let k = -kr; k <= kr; k++) {
+          const xx = horizontal ? x + k : x;
+          const yy = horizontal ? y : y + k;
+          if (xx >= 0 && xx < n && yy >= 0 && yy < n) v += a[yy * n + xx] * kernel[k + kr];
+        }
+        out[y * n + x] = v / ksum;
+      }
+    }
+    a = out;
+  }
+  for (let i = 0; i < n * n; i++) {
+    img.data[i * 4] = r;
+    img.data[i * 4 + 1] = g;
+    img.data[i * 4 + 2] = b;
+    img.data[i * 4 + 3] = Math.round(a[i] * 255);
+  }
+  c.putImageData(img, 0, 0);
+  return { canvas, half: n / 2 / dpr };
+}
+
 /** Stable pseudo-random number in [0, 1) for a given index. */
 function seeded(i: number) {
   const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -347,7 +408,7 @@ function startDotField({
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
   dotColor: string;
-  fade: boolean;
+  fade: boolean | "depth";
   cfg: DotFieldSettings;
 }) {
   const gctx = gradientCanvas?.getContext("2d");
@@ -356,7 +417,8 @@ function startDotField({
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const now = () => performance.now() / 1000;
 
-  const dotColor = `rgb(${readColor(root, dotColorName).join(",")})`;
+  const dotRgb = readColor(root, dotColorName);
+  const dotColor = `rgb(${dotRgb.join(",")})`;
   const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
@@ -434,21 +496,40 @@ function startDotField({
     });
 
     dots = [];
+    const sprites = new Map<string, Sprite>();
     for (let r = 0; r < rows; r++) {
       const y = oy + r * spacing;
-      const f = Math.max(0, (y / H - cfg.fadeStart) / (1 - cfg.fadeStart));
-      const alpha = fade
-        ? cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6
-        : 1;
+      const t = y / H;
+      let alpha = 1;
+      let sigma = 0; // gaussian blur in px (half the Figma/CSS blur radius)
+      if (fade === "depth") {
+        const { depthKnee: k, depthKneeOpacity: ko, depthSharpFrom: sf } = cfg;
+        alpha = t < k ? (ko * t) / k : ko + ((1 - ko) * (t - k)) / (1 - k);
+        sigma = (cfg.depthBlur * spacing * Math.max(0, (sf - t) / sf)) / 2;
+      } else if (fade) {
+        const f = Math.max(0, (t - cfg.fadeStart) / (1 - cfg.fadeStart));
+        alpha = cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6;
+      }
       for (let c = 0; c < cols; c++) {
         if (anchorCells.has(r * cols + c)) continue;
         const rv = seeded(r * 97 + c);
+        const base =
+          rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall;
+        let sprite: Sprite | undefined;
+        if (sigma > 0.15) {
+          const key = `${base}|${r}`;
+          sprite = sprites.get(key);
+          if (!sprite) {
+            sprite = blurredDot(dotRgb, base, sigma, dpr);
+            sprites.set(key, sprite);
+          }
+        }
         dots.push({
+          sprite,
           x: ox + c * spacing,
           y,
           wave: (c + r) * 0.35 - seeded(r * 97 + c + 999) * 2,
-          base:
-            rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
+          base,
           alpha,
           scale: 1,
           vs: 0,
@@ -584,15 +665,16 @@ function startDotField({
 
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
-      ctx.beginPath();
-      ctx.arc(
-        d.x + d.dx,
-        d.y + d.dy,
-        Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer)),
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
+      const radius = Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer));
+      if (d.sprite) {
+        // scaled with the dot, so the blur grows a little with it
+        const h = (d.sprite.half * radius) / d.base;
+        ctx.drawImage(d.sprite.canvas, d.x + d.dx - h, d.y + d.dy - h, h * 2, h * 2);
+      } else {
+        ctx.beginPath();
+        ctx.arc(d.x + d.dx, d.y + d.dy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
   }
