@@ -10,8 +10,8 @@ From back to front, a dot field is made of up to five layers:
 
 1. **Background.** Either the animated gradient or a flat color set on the container.
 2. **Gradient** _(optional)_. Soft color areas ("blobs") in blue, periwinkle and coral that slowly drift and blend into each other. Colors are mixed in OKLab, so the blends look even to the eye.
-3. **Grain** _(only with the gradient)_. A light film-grain noise on top of the gradient, re-drawn 24 times per second.
-4. **Dots.** A regular grid of square cells, centered in the container with the same gap to the edge on all four sides (the spacing is nudged by up to 6% to make the gaps match; on near-square boxes a difference of a few pixels can remain). Each dot gets one of three sizes at random (small, medium, large), always the same across reloads.
+3. **Grain** _(only with the gradient)_. A light film-grain noise on top of the gradient, re-drawn many times per second (`grainFps`).
+4. **Dots.** A regular grid of square cells, centered in the container with the same gap to the edge on all four sides (the spacing is nudged slightly to make the gaps match; on near-square boxes a difference of a few pixels can remain). Each dot gets one of three sizes at random (small, medium, large), always the same across reloads.
 5. **Labels** _(optional)_. Some grid points carry a label: a bigger dot that grows into a pill with text (the "dot-to-chip morph").
 
 Content passed as children is rendered on top of all layers.
@@ -21,7 +21,7 @@ Content passed as children is rendered on top of all layers.
 - **Shimmer.** At rest, dots slowly pulse in size and opacity, in a wave that runs diagonally across the grid.
 - **Cursor.** Dots near the cursor grow and move away from it, with a springy motion.
 - **Ripple.** Clicking anywhere sends a wave through the grid.
-- **Labels.** Every few seconds a random label opens on its own and closes after a while (at most 3 open at once). Hovering a label dot opens it, with a smaller ripple, and keeps it open while the cursor is on it.
+- **Labels.** Every few seconds a random label opens on its own and closes after a while (only a few open at once, `maxOpen`). Hovering a label dot opens it, with a smaller ripple, and keeps it open while the cursor is on it.
 - **Reduced motion.** With the system "reduce motion" setting on, the gradient and shimmer slow down, the grain stops changing and labels no longer open on their own.
 - **Off screen.** Animation pauses when the field is not visible.
 
@@ -32,7 +32,7 @@ Every knob lives in `dotFieldDefaults` at the top of the source file. A single i
 | Group | Settings | What they control |
 |---|---|---|
 | Gradient | `driftSpeed`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps` | Speed and shape of the color areas, grain strength |
-| Dots | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (target 30px, 26px under 640px wide, adjusted by up to ±6% to even out the margins), dot sizes, idle pulse |
+| Dots | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (a tighter spacing on small screens, nudged slightly to even out the margins), dot sizes, idle pulse |
 | Cursor | `influence`, `magnify`, `repel`, `hoverRadius` | How far the cursor reaches and how much dots grow and move |
 | Ripple | `ripple`, `rippleSpeed`, `rippleLife` | Strength, speed and duration of the click wave |
 | Labels | `labelEvery`, `labelHold`, `maxOpen`, `morphMs`, `hoverLinger` | Timing of automatic labels and of the morph |

@@ -16,6 +16,7 @@ Each doc explains **what** an element is, **why** it looks and behaves the way i
 - Use the same name as the code where one exists (`DotField` → `dot-field.md`), and link the source file.
 - Give every variant a short, stable name and a heading of its own, so it can be referenced by name.
 - When the code changes, update the doc in the same commit.
+- Describe concepts and behavior, not tuning values: name the setting that controls something (`depthBlur`) instead of writing its current value, which lives only in the code.
 - Add each new doc to the index above.
 
 ## Template
