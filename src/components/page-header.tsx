@@ -12,10 +12,10 @@ export function PageHeader({
 }) {
   return (
     <header className="shell pt-12 pb-12 sm:pt-16 sm:pb-16">
-      <p className="mb-4 text-[13px] font-medium tracking-[0.12em] text-muted-foreground uppercase">
+      <p className="mb-4 text-[13px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
         {eyebrow}
       </p>
-      <h1 className="max-w-225 font-serif text-[44px] leading-[1.05] tracking-[-1.5px] sm:text-[clamp(52px,6vw,80px)] sm:tracking-[-2px]">
+      <h1 className="max-w-225 text-balance font-medium tracking-[-0.035em] text-[44px] leading-[1.05] sm:text-[clamp(52px,6vw,80px)]">
         {title}
       </h1>
       {intro && (

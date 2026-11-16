@@ -18,7 +18,7 @@ export function PlaceholderArt() {
 export function PostCard({ post, className }: { post: Post; className?: string }) {
   return (
     <article className={cn("group relative min-w-0", className)}>
-      <div className="relative h-55 overflow-hidden rounded-[20px] bg-lavender sm:h-60">
+      <div className="relative h-55 overflow-hidden rounded-[20px] bg-periwinkle sm:h-60">
         {post.image ? (
           <Image
             src={post.image}
@@ -37,7 +37,7 @@ export function PostCard({ post, className }: { post: Post; className?: string }
         </Badge>
         <p className="text-sm text-muted-foreground">{post.meta}</p>
       </div>
-      <h3 className="mt-4 font-serif text-[26px] leading-[1.2] transition-colors group-hover:text-brand">
+      <h3 className="mt-4 font-semibold tracking-[-0.03em] text-[26px] leading-[1.2] transition-colors group-hover:text-brand">
         <Link href={`/blog/${post.slug}`} className="after:absolute after:inset-0">
           {post.title}
         </Link>

@@ -8,7 +8,7 @@ import { posts } from "@/lib/posts";
 export function Journal() {
   return (
     <section id="journal" className="shell py-17 sm:py-24">
-      <SectionHeading eyebrow="Field notes" title="From the pasture.">
+      <SectionHeading eyebrow="Field notes" title={<>From the <em>pasture.</em></>}>
         <Link href="/blog" className="group inline-flex items-center gap-2 font-medium">
           All notes
           <ArrowRight className="size-5 transition-transform group-hover:translate-x-1" strokeWidth={1.33} />

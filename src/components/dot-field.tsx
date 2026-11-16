@@ -68,7 +68,7 @@ const blobs = [
     k: 1.3,
   },
   {
-    color: "lavender",
+    color: "periwinkle",
     x: 0.9,
     y: 0.18,
     ax: 0.05,
@@ -78,7 +78,7 @@ const blobs = [
     k: 0.75,
   },
   {
-    color: "orange",
+    color: "coral",
     x: 0.08,
     y: 0.92,
     ax: 0.07,
@@ -88,7 +88,7 @@ const blobs = [
     k: 1.2,
   },
   {
-    color: "lavender",
+    color: "periwinkle",
     x: 0.62,
     y: 0.88,
     ax: 0.12,
@@ -98,7 +98,7 @@ const blobs = [
     k: 1,
   },
   {
-    color: "orange",
+    color: "coral",
     x: 0.95,
     y: 0.9,
     ax: 0.04,

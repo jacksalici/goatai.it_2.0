@@ -51,8 +51,8 @@
   --radius-xl: calc(var(--radius) + 4px);
 
   --color-blue: var(--blue);
-  --color-orange: var(--orange);
-  --color-lavender: var(--lavender);
+  --color-coral: var(--coral);
+  --color-periwinkle: var(--periwinkle);
 }
 
 @utility shell {
@@ -67,6 +67,27 @@
   }
 }
 
+/*
+ * Aurora glow — the brandbook's "on Ink" version of the aurora gradient:
+ * a soft periwinkle/blue core with a coral lobe. Use on Ink surfaces only,
+ * behind headlines, never behind small text. Move it with --glow-x / --glow-y.
+ */
+@utility aurora-glow {
+  background-image:
+    radial-gradient(
+      ellipse 20% 34% at calc(var(--glow-x, 50%) + 13%) calc(var(--glow-y, 40%) + 14%),
+      color-mix(in oklab, var(--coral) 55%, transparent),
+      transparent 100%
+    ),
+    radial-gradient(
+      ellipse 34% 52% at var(--glow-x, 50%) var(--glow-y, 40%),
+      color-mix(in oklab, var(--periwinkle) 70%, transparent),
+      color-mix(in oklab, var(--blue) 30%, transparent) 50%,
+      transparent 100%
+    );
+  background-repeat: no-repeat;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -76,6 +97,19 @@
   }
   body {
     @apply min-w-80 bg-background font-sans text-foreground antialiased;
+  }
+  ::selection {
+    background-color: var(--periwinkle);
+    color: var(--ink);
+  }
+  /* Newsreader Italic is the accent voice: one phrase, never a paragraph. */
+  em {
+    font-family: var(--font-serif);
+    font-weight: 400;
+    letter-spacing: -0.015em;
+  }
+  :is(h1, h2, h3) em {
+    font-size: 1.07em; /* optical match to DM Sans x-height */
   }
   button:not(:disabled) {
     @apply cursor-pointer;

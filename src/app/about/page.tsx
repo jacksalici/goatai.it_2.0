@@ -48,7 +48,7 @@ export default function AboutPage() {
         <dl className="grid gap-px overflow-hidden rounded-3xl border bg-border sm:grid-cols-3">
           {stats.map((stat) => (
             <div key={stat.label} className="bg-background p-6 sm:p-7.5">
-              <dd className="font-serif text-[56px] leading-none tracking-[-1.5px] text-brand">{stat.value}</dd>
+              <dd className="font-semibold tracking-[-0.03em] text-[56px] leading-none text-brand">{stat.value}</dd>
               <dt className="mt-3 max-w-60 text-sm text-muted-foreground">{stat.label}</dt>
             </div>
           ))}
@@ -56,8 +56,8 @@ export default function AboutPage() {
       </section>
 
       <section className="shell grid gap-10 pb-17 sm:pb-24 md:grid-cols-2 md:gap-16">
-        <h2 className="font-serif text-[42px] leading-[1.1] tracking-[-1.5px] sm:text-[clamp(42px,4.2vw,56px)]">
-          Why a goat?
+        <h2 className="font-semibold tracking-[-0.03em] text-[42px] leading-[1.1] sm:text-[clamp(42px,4.2vw,56px)]">
+          Why a <em>goat?</em>
         </h2>
         <div className="space-y-5 text-[17px] leading-relaxed text-muted-foreground">
           <p>
@@ -74,7 +74,7 @@ export default function AboutPage() {
       </section>
 
       <section className="shell pb-17 sm:pb-24">
-        <SectionHeading eyebrow="What we believe" title="How the herd works." />
+        <SectionHeading eyebrow="What we believe" title={<>How the <em>herd works.</em></>} />
         <div className="grid gap-5 md:grid-cols-3">
           {values.map((value) => (
             <div key={value.title} className="rounded-3xl border p-6 sm:p-7.5">
@@ -87,8 +87,8 @@ export default function AboutPage() {
 
       <section className="shell pb-17 sm:pb-24">
         <div className="flex flex-col items-start justify-between gap-6 rounded-3xl bg-foreground p-8 text-background sm:flex-row sm:items-center sm:p-12">
-          <p className="max-w-130 font-serif text-[32px] leading-[1.15]">
-            Meet the people behind the goat.
+          <p className="max-w-130 font-semibold tracking-[-0.03em] text-[32px] leading-[1.15]">
+            Meet the people <em>behind the goat.</em>
           </p>
           <div className="flex gap-3">
             <Button asChild size="lg" variant="secondary">

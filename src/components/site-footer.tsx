@@ -10,7 +10,7 @@ export function SiteFooter() {
         <div>
           <Logo />
           <p className="mt-2.5 text-sm text-brand">
-            Artificial Intelligence, <em className="font-serif text-base">powered by humans.</em>
+            Artificial Intelligence, <em className="text-base">powered by humans.</em>
           </p>
           <p className="mt-4 max-w-72 text-sm leading-normal text-muted-foreground">
             A spin-off of the University of Modena and Reggio Emilia, born inside a computer

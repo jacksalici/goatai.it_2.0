@@ -7,11 +7,11 @@ export function Hero() {
   return (
     <>
       <section className="shell pt-12 pb-10 text-center sm:pt-16 sm:pb-13">
-        <h1 className="leading-[1.03] tracking-[-1px] sm:leading-[0.95] sm:tracking-[-2px]">
+        <h1 className="leading-[1.03] tracking-[-0.035em] sm:leading-[0.98]">
           <span className="block text-[42px] font-medium sm:text-[clamp(52px,6.1vw,88px)]">
-            Artificial Intelligence
+            Artificial Intelligence,
           </span>
-          <em className="mt-1 block font-serif text-[47px] sm:mt-0 sm:text-[clamp(54px,6.1vw,88px)]">
+          <em className="mt-1 block text-[46px] sm:mt-0 sm:text-[clamp(56px,6.5vw,94px)]">
             powered by humans.
           </em>
         </h1>

@@ -13,7 +13,7 @@ export function Services() {
           <>
             Machine precision.
             <br />
-            Human know-how.
+            <em>Human know-how.</em>
           </>
         }
       >
@@ -31,7 +31,7 @@ export function Services() {
           >
             <div className="p-6 sm:p-7.5">
               <div className="flex items-center justify-between">
-                <span className="font-serif text-lg text-muted-foreground">
+                <span className="font-serif text-lg text-muted-foreground italic">
                   {String(index + 1).padStart(2, "0")}
                 </span>
                 <ArrowUpRight className="size-5 -translate-x-1 translate-y-1 opacity-0 transition duration-300 group-hover:translate-0 group-hover:opacity-100" />
