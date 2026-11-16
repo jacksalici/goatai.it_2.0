@@ -11,9 +11,10 @@ import { cn } from "@/lib/utils";
 export const dotFieldDefaults = {
   // Gradient
   driftSpeed: 0.16, // how fast the color areas move
-  sway: 0.04, // gentle wobble of the color edges
+  driftRange: 3.0, // how far the color areas travel (multiplies each blob's ax / ay)
+  sway: 0.08, // gentle wobble of the color edges
   blobTightness: 2.2, // higher = smaller color areas
-  colorSharpness: 1.6, // higher = purer colors, harder blends
+  colorSharpness: 2.0, // higher = purer colors, harder blends
   grain: 0.05, // film-grain opacity
   grainFps: 24, // grain re-seeds per second
 
@@ -548,8 +549,8 @@ function startDotField({
     const { width: gw, height: gh, data } = gradient;
     const asp = W / H;
     const centers = blobs.map((b) => [
-      (b.x + b.ax * Math.sin(drift * b.fx)) * asp,
-      b.y + b.ay * Math.cos(drift * b.fy),
+      (b.x + cfg.driftRange * b.ax * Math.sin(drift * b.fx)) * asp,
+      b.y + cfg.driftRange * b.ay * Math.cos(drift * b.fy),
       cfg.blobTightness * b.k * cfg.colorSharpness,
     ]);
     let i = 0;

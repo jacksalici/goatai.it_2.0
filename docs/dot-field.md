@@ -31,7 +31,7 @@ Every knob lives in `dotFieldDefaults` at the top of the source file. A single i
 
 | Group | Settings | What they control |
 |---|---|---|
-| Gradient | `driftSpeed`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps` | Speed and shape of the color areas, grain strength |
+| Gradient | `driftSpeed`, `driftRange`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps` | Speed, travel distance and shape of the color areas, grain strength |
 | Dots | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (a tighter spacing on small screens, nudged slightly to even out the margins), dot sizes, idle pulse |
 | Cursor | `influence`, `magnify`, `repel`, `hoverRadius` | How far the cursor reaches and how much dots grow and move |
 | Ripple | `ripple`, `rippleSpeed`, `rippleLife` | Strength, speed and duration of the click wave |
