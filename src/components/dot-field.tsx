@@ -71,6 +71,13 @@ export const dotFieldDefaults = {
   depthKneeOpacity: 0.2, // dot opacity at the knee (0 at the top, 1 at the bottom)
   depthSharpFrom: 0.85, // 0–1 from the top: below this, dots are sharp
   depthBlur: 0.35, // blur radius at the top, as a fraction of the spacing
+
+  // Multi-color dots (only when `dotColor` is a list)
+  colorSpeed: 0.05, // palette cycles per second
+  colorWave: 0.9, // palette cycles across the box (diagonal bands)
+  colorJitter: 0.22, // per-dot random offset, breaks the bands into speckles
+  colorHold: 0.7, // 0–1: share of the cycle a dot sits on a pure palette color
+  colorRipple: 0.35, // palette shift a ripple pushes through the dots
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
@@ -156,7 +163,8 @@ const noLabels: DotFieldLabel[] = [];
 /**
  * Animated dot field. Children render on top of the effect.
  * - `gradient`: moving color background; when off, set the background via `className`.
- * - `dotColor`: palette variable the dots are drawn with.
+ * - `dotColor`: palette variable the dots are drawn with. Pass a list to give every
+ *   dot one of those colors, flowing between them in diagonal waves.
  * - `fade`: dots fade in from the top; `"depth"` also blurs them toward the top.
  */
 export function DotField({
@@ -171,7 +179,7 @@ export function DotField({
 }: {
   labels?: DotFieldLabel[];
   gradient?: boolean;
-  dotColor?: string;
+  dotColor?: string | string[];
   fade?: boolean | "depth";
   pulse?: DotFieldPulse;
   settings?: Partial<DotFieldSettings>;
@@ -269,13 +277,19 @@ export function DotField({
 
 type RGB = [number, number, number];
 
-type Sprite = { canvas: HTMLCanvasElement; half: number };
+/** Blurred dot: an alpha mask plus one colored copy per color it was drawn in. */
+type Sprite = {
+  mask: HTMLCanvasElement;
+  half: number;
+  tints: Map<string, HTMLCanvasElement>;
+};
 
 type Dot = {
   sprite?: Sprite; // pre-blurred dot, drawn instead of a sharp circle
   x: number;
   y: number;
   wave: number; // diagonal offset for the shimmer
+  hue: number; // position in the palette cycle (multi-color only)
   base: number;
   alpha: number;
   scale: number;
@@ -357,9 +371,9 @@ function oklabToRgb(L: number, a: number, b: number): RGB {
  * Pre-renders a dot of `radius` px with a gaussian blur of `sigma` px, in
  * device pixels. The blur is done by hand (separable kernel) because canvas
  * `filter` is not available everywhere. It spreads the dot without changing
- * its total opacity.
+ * its total opacity. The result is a mask: `tinted` colors it.
  */
-function blurredDot([r, g, b]: RGB, radius: number, sigma: number, dpr: number): Sprite {
+function blurredDot(radius: number, sigma: number, dpr: number): Sprite {
   const half = radius + Math.ceil(3 * sigma) + 1;
   const n = Math.ceil(half * 2 * dpr);
   const canvas = document.createElement("canvas");
@@ -395,14 +409,49 @@ function blurredDot([r, g, b]: RGB, radius: number, sigma: number, dpr: number):
     }
     a = out;
   }
-  for (let i = 0; i < n * n; i++) {
-    img.data[i * 4] = r;
-    img.data[i * 4 + 1] = g;
-    img.data[i * 4 + 2] = b;
-    img.data[i * 4 + 3] = Math.round(a[i] * 255);
-  }
+  for (let i = 0; i < n * n; i++) img.data[i * 4 + 3] = Math.round(a[i] * 255);
   c.putImageData(img, 0, 0);
-  return { canvas, half: n / 2 / dpr };
+  return { mask: canvas, half: n / 2 / dpr, tints: new Map() };
+}
+
+/** The sprite's blurred dot in `color`, made on first use. */
+function tinted(sprite: Sprite, color: string) {
+  let canvas = sprite.tints.get(color);
+  if (!canvas) {
+    canvas = document.createElement("canvas");
+    canvas.width = sprite.mask.width;
+    canvas.height = sprite.mask.height;
+    const c = canvas.getContext("2d")!;
+    c.drawImage(sprite.mask, 0, 0);
+    c.globalCompositeOperation = "source-in";
+    c.fillStyle = color;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+    sprite.tints.set(color, canvas);
+  }
+  return canvas;
+}
+
+/**
+ * Looping palette as a lookup table of CSS colors. Each color holds for `hold`
+ * of its slot, then eases into the next one through OKLab.
+ */
+function buildPalette(colors: RGB[], hold: number, steps = 32): string[] {
+  const css = ([r, g, b]: RGB) =>
+    `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+  if (colors.length < 2) return [css(oklabToRgb(...colors[0]))];
+  const out: string[] = [];
+  for (let i = 0; i < colors.length; i++) {
+    const a = colors[i];
+    const b = colors[(i + 1) % colors.length];
+    for (let s = 0; s < steps; s++) {
+      const p = Math.max(0, (s / steps - hold) / (1 - hold));
+      const e = p * p * (3 - 2 * p);
+      out.push(
+        css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))),
+      );
+    }
+  }
+  return out;
 }
 
 /** Stable pseudo-random number in [0, 1) for a given index. */
@@ -462,7 +511,7 @@ function startDotField({
   dotCanvas: HTMLCanvasElement;
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
-  dotColor: string;
+  dotColor: string | string[];
   fade: boolean | "depth";
   pulse: DotFieldPulse;
   cfg: DotFieldSettings;
@@ -473,8 +522,12 @@ function startDotField({
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const now = () => performance.now() / 1000;
 
-  const dotRgb = readColor(root, dotColorName);
-  const dotColor = `rgb(${dotRgb.join(",")})`;
+  const dotNames = Array.isArray(dotColorName) ? dotColorName : [dotColorName];
+  const dotPalette = buildPalette(
+    dotNames.map((n) => rgbToOklab(readColor(root, n))),
+    cfg.colorHold,
+  );
+  const multiColor = dotPalette.length > 1;
   const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
@@ -583,7 +636,7 @@ function startDotField({
           const key = `${base}|${r}`;
           sprite = sprites.get(key);
           if (!sprite) {
-            sprite = blurredDot(dotRgb, base, sigma, dpr);
+            sprite = blurredDot(base, sigma, dpr);
             sprites.set(key, sprite);
           }
         }
@@ -592,6 +645,9 @@ function startDotField({
           x: ox + c * spacing,
           y,
           wave: (c + r) * 0.35 - seeded(r * 97 + c + 999) * 2,
+          hue:
+            ((c / cols) * 0.55 + (r / rows) * 0.45) * cfg.colorWave +
+            seeded(r * 97 + c + 4242) * cfg.colorJitter,
           base,
           alpha,
           scale: 1,
@@ -753,7 +809,8 @@ function startDotField({
     }
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dotColor;
+    ctx.fillStyle = dotPalette[0];
+    const cycle = t * cfg.colorSpeed;
 
     for (const d of dots) {
       let scale = 1;
@@ -773,6 +830,7 @@ function startDotField({
         }
       }
 
+      let kick = 0;
       for (const rp of ripples) {
         const dist = Math.hypot(d.x - rp.x, d.y - rp.y);
         const band =
@@ -780,6 +838,7 @@ function startDotField({
           (1 - rp.t / cfg.rippleLife) *
           rp.strength;
         if (band > 0.002) {
+          kick += band;
           scale += band * 1.4;
           tx += ((d.x - rp.x) * band * 8) / (dist || 1);
           ty += ((d.y - rp.y) * band * 8) / (dist || 1);
@@ -798,12 +857,25 @@ function startDotField({
       const size = d.base + (cfg.dotPop - d.base) * d.pop;
 
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
+      let color = dotPalette[0];
+      if (multiColor) {
+        const h = d.hue + cycle + kick * cfg.colorRipple;
+        const n = dotPalette.length;
+        color = dotPalette[(((Math.floor(h * n) % n) + n) % n)];
+        ctx.fillStyle = color;
+      }
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
       const radius = Math.max(0.5, size * d.scale * (1 + wave * cfg.shimmer));
       if (d.sprite) {
         // scaled with the dot, so the blur grows a little with it
         const h = (d.sprite.half * radius) / d.base;
-        ctx.drawImage(d.sprite.canvas, d.x + d.dx - h, d.y + d.dy - h, h * 2, h * 2);
+        ctx.drawImage(
+          tinted(d.sprite, color),
+          d.x + d.dx - h,
+          d.y + d.dy - h,
+          h * 2,
+          h * 2,
+        );
       } else {
         ctx.beginPath();
         ctx.arc(d.x + d.dx, d.y + d.dy, radius, 0, Math.PI * 2);

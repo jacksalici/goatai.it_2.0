@@ -9,6 +9,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { suggestions } from "@/lib/content";
 
+const askDotColors = ["blue", "periwinkle", "coral"];
+
 export function AskSection() {
   const [question, setQuestion] = useState("");
   const [sent, setSent] = useState("");
@@ -25,11 +27,11 @@ export function AskSection() {
     <section id="ask" className="shell pt-7 pb-17.5 sm:pt-12 sm:pb-24">
       <DotField
         gradient={false}
-        dotColor="brand"
+        dotColor={askDotColors}
         fade="depth"
         className="grid min-h-155 place-items-center rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20"
       >
-        <div aria-hidden="true" className="aurora-glow absolute inset-0 -z-20 [--glow-y:26%]" />
+        <div aria-hidden="true" className="aurora-orbs absolute inset-0 -z-20 [--glow-x:46%] [--glow-y:30%]" />
         <div className="relative flex w-full flex-col items-center text-center">
           <h2 className="font-semibold tracking-[-0.03em] text-[44px] leading-[1.1] text-background sm:text-[clamp(46px,5vw,64px)]">
             Ask the goat <em>anything.</em>
