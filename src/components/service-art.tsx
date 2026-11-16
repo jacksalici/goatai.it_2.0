@@ -13,7 +13,7 @@ export function ServiceArt({
   className?: string;
 }) {
   return (
-    // eslint-disable-next-line @next/next/no-img-element
+    // biome-ignore lint/performance/noImgElement: pre-rendered WebP, nothing for next/image to optimize
     <img
       src={`/services/${name}.webp`}
       alt=""

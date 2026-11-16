@@ -274,8 +274,10 @@ function readColor(el: Element, name: string): RGB {
 }
 
 /* OKLab conversion (https://bottosson.github.io/posts/oklab), so blends look even to the eye. */
-const toLinear = (c: number) =>
-  (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const toLinear = (c: number) => {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
 const fromLinear = (c: number) =>
   255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
 
