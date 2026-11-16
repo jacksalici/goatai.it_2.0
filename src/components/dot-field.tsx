@@ -49,6 +49,13 @@ export const dotFieldDefaults = {
   fadeStart: 0.1, // 0–1 from the top: where dots begin to appear
   fadeMin: 0.04, // dot opacity at the top of the fade
   fadeMax: 0.95, // dot opacity at the bottom
+
+  // Multi-color dots (only when `dotColor` is a list)
+  colorSpeed: 0.05, // palette cycles per second
+  colorWave: 0.9, // palette cycles across the box (diagonal bands)
+  colorJitter: 0.22, // per-dot random offset, breaks the bands into speckles
+  colorHold: 0.7, // 0–1: share of the cycle a dot sits on a pure palette color
+  colorRipple: 0.35, // palette shift a ripple pushes through the dots
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
@@ -116,7 +123,8 @@ const noLabels: DotFieldLabel[] = [];
 /**
  * Animated dot field. Children render on top of the effect.
  * - `gradient`: moving color background; when off, set the background via `className`.
- * - `dotColor`: palette variable the dots are drawn with.
+ * - `dotColor`: palette variable the dots are drawn with. Pass a list to give every
+ *   dot one of those colors, flowing between them in diagonal waves.
  * - `fade`: dots fade in from the top.
  */
 export function DotField({
@@ -130,7 +138,7 @@ export function DotField({
 }: {
   labels?: DotFieldLabel[];
   gradient?: boolean;
-  dotColor?: string;
+  dotColor?: string | string[];
   fade?: boolean;
   settings?: Partial<DotFieldSettings>;
   className?: string;
@@ -230,6 +238,7 @@ type Dot = {
   x: number;
   y: number;
   wave: number; // diagonal offset for the shimmer
+  hue: number; // position in the palette cycle (multi-color only)
   base: number;
   alpha: number;
   scale: number;
@@ -300,6 +309,29 @@ function oklabToRgb(L: number, a: number, b: number): RGB {
   ];
 }
 
+/**
+ * Looping palette as a lookup table of CSS colors. Each color holds for `hold`
+ * of its slot, then eases into the next one through OKLab.
+ */
+function buildPalette(colors: RGB[], hold: number, steps = 32): string[] {
+  const css = ([r, g, b]: RGB) =>
+    `rgb(${Math.round(r)},${Math.round(g)},${Math.round(b)})`;
+  if (colors.length < 2) return [css(oklabToRgb(...colors[0]))];
+  const out: string[] = [];
+  for (let i = 0; i < colors.length; i++) {
+    const a = colors[i];
+    const b = colors[(i + 1) % colors.length];
+    for (let s = 0; s < steps; s++) {
+      const p = Math.max(0, (s / steps - hold) / (1 - hold));
+      const e = p * p * (3 - 2 * p);
+      out.push(
+        css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))),
+      );
+    }
+  }
+  return out;
+}
+
 /** Stable pseudo-random number in [0, 1) for a given index. */
 function seeded(i: number) {
   const x = Math.sin(i * 127.1 + 311.7) * 43758.5453;
@@ -323,7 +355,7 @@ function startDotField({
   dotCanvas: HTMLCanvasElement;
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
-  dotColor: string;
+  dotColor: string | string[];
   fade: boolean;
   cfg: DotFieldSettings;
 }) {
@@ -333,7 +365,12 @@ function startDotField({
   const reduceMotion = matchMedia("(prefers-reduced-motion: reduce)").matches;
   const now = () => performance.now() / 1000;
 
-  const dotColor = `rgb(${readColor(root, dotColorName).join(",")})`;
+  const dotNames = Array.isArray(dotColorName) ? dotColorName : [dotColorName];
+  const dotPalette = buildPalette(
+    dotNames.map((n) => rgbToOklab(readColor(root, n))),
+    cfg.colorHold,
+  );
+  const multiColor = dotPalette.length > 1;
   const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
@@ -424,6 +461,9 @@ function startDotField({
           x: ox + c * spacing,
           y,
           wave: (c + r) * 0.35 - seeded(r * 97 + c + 999) * 2,
+          hue:
+            ((c / cols) * 0.55 + (r / rows) * 0.45) * cfg.colorWave +
+            seeded(r * 97 + c + 4242) * cfg.colorJitter,
           base:
             rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
           alpha,
@@ -518,7 +558,8 @@ function startDotField({
     }
 
     ctx.clearRect(0, 0, W, H);
-    ctx.fillStyle = dotColor;
+    ctx.fillStyle = dotPalette[0];
+    const cycle = t * cfg.colorSpeed;
 
     for (const d of dots) {
       let scale = 1;
@@ -538,6 +579,7 @@ function startDotField({
         }
       }
 
+      let kick = 0;
       for (const rp of ripples) {
         const dist = Math.hypot(d.x - rp.x, d.y - rp.y);
         const band =
@@ -545,6 +587,7 @@ function startDotField({
           (1 - rp.t / cfg.rippleLife) *
           rp.strength;
         if (band > 0.002) {
+          kick += band;
           scale += band * 1.4;
           tx += ((d.x - rp.x) * band * 8) / (dist || 1);
           ty += ((d.y - rp.y) * band * 8) / (dist || 1);
@@ -560,6 +603,11 @@ function startDotField({
       d.dy += d.vy * dt * 6;
 
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
+      if (multiColor) {
+        const h = d.hue + cycle + kick * cfg.colorRipple;
+        const n = dotPalette.length;
+        ctx.fillStyle = dotPalette[(((Math.floor(h * n) % n) + n) % n)];
+      }
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
       ctx.beginPath();
       ctx.arc(
