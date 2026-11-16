@@ -17,7 +17,8 @@ export const metadata: Metadata = {
     default: "GoatAI — Artificial Intelligence, powered by humans",
     template: "%s — GoatAI",
   },
-  description: "Born in a university lab in Modena, we build AI and computer vision tailored to your needs.",
+  description:
+    "Born in a university lab in Modena, we build AI and computer vision tailored to your needs.",
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

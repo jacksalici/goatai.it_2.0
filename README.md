@@ -5,6 +5,7 @@
 - [Next.js](https://nextjs.org) (App Router) + React + TypeScript
 - [Tailwind CSS v4](https://tailwindcss.com)
 - [shadcn/ui](https://ui.shadcn.com) components, [Lucide](https://lucide.dev) icons
+- [Biome](https://biomejs.dev) for linting and formatting
 
 ## Getting started
 
@@ -12,6 +13,8 @@
 npm install
 npm run dev    # http://localhost:3000
 npm run build  # production build
+npm run fix    # format + safe lint fixes (Biome)
+npm run check  # lint, format check and type check (Biome + tsc)
 ```
 
 ## Structure

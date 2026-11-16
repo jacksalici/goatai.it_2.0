@@ -1,5 +1,14 @@
 # GoatAI website working conventions.
 
+## Code quality.
+
+Type checker: TypeScript (`tsc`). Linter and formatter: Biome, configured in `biome.jsonc`.
+
+- After editing code, run `npm run fix`: it formats the code and applies the safe lint fixes.
+- Before committing or calling a task done, run `npm run check` (lint, format check, type check). It must pass with no errors and no warnings.
+- Fix what the checks report in the code. Don't silence them with `biome-ignore`, `@ts-ignore`, `@ts-expect-error`, `any` or config changes.
+- Only for a false positive, suppress that single line with a `biome-ignore` comment that states the reason.
+
 ## Committing rules.
 
 Never add "Co-authored-by: Claude", "Generated with Claude Code" or any similar trailer or attribution to commit messages.

@@ -29,7 +29,10 @@ export default async function PostPage({ params }: Props) {
           href="/blog"
           className="group mb-10 inline-flex items-center gap-2 text-sm text-muted-foreground transition-colors hover:text-brand"
         >
-          <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" strokeWidth={1.33} />
+          <ArrowLeft
+            className="size-4 transition-transform group-hover:-translate-x-1"
+            strokeWidth={1.33}
+          />
           All notes
         </Link>
         <div className="flex items-center gap-2.5">
@@ -43,7 +46,9 @@ export default async function PostPage({ params }: Props) {
         <h1 className="mt-6 text-balance font-semibold tracking-[-0.03em] text-[40px] leading-[1.1] sm:text-[clamp(44px,5vw,60px)]">
           {post.title}
         </h1>
-        <p className="mt-6 text-lg leading-normal text-muted-foreground">{post.excerpt}</p>
+        <p className="mt-6 text-lg leading-normal text-muted-foreground">
+          {post.excerpt}
+        </p>
       </header>
 
       <div className="shell relative my-12 h-70 max-w-250 overflow-hidden rounded-3xl bg-periwinkle sm:h-105">

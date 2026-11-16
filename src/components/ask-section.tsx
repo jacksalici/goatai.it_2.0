@@ -31,14 +31,17 @@ export function AskSection() {
         fade
         className="grid min-h-155 place-items-center rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20"
       >
-        <div aria-hidden="true" className="aurora-orbs absolute inset-0 -z-20 [--glow-x:46%] [--glow-y:30%]" />
+        <div
+          aria-hidden="true"
+          className="aurora-orbs absolute inset-0 -z-20 [--glow-x:46%] [--glow-y:30%]"
+        />
         <div className="relative flex w-full flex-col items-center text-center">
           <h2 className="font-semibold tracking-[-0.03em] text-[44px] leading-[1.1] text-background sm:text-[clamp(46px,5vw,64px)]">
             Ask the goat <em>anything.</em>
           </h2>
           <p className="mt-5 mb-7.5 text-[15px] text-background/70 sm:text-[17px]">
-            Tell us the problem you want to solve. A human will read it, the goat
-            will help.
+            Tell us the problem you want to solve. A human will read it, the goat will
+            help.
           </p>
 
           <form
