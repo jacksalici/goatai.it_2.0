@@ -277,20 +277,13 @@ function readColor(el: Element, name: string): RGB {
 const toLinear = (c: number) =>
   (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
 const fromLinear = (c: number) =>
-  255 *
-  (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
+  255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
 
 function rgbToOklab([r, g, b]: RGB): RGB {
   const [lr, lg, lb] = [toLinear(r), toLinear(g), toLinear(b)];
-  const l = Math.cbrt(
-    0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb,
-  );
-  const m = Math.cbrt(
-    0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb,
-  );
-  const s = Math.cbrt(
-    0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb,
-  );
+  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
   return [
     0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
@@ -324,9 +317,7 @@ function buildPalette(colors: RGB[], hold: number, steps = 32): string[] {
     for (let s = 0; s < steps; s++) {
       const p = Math.max(0, (s / steps - hold) / (1 - hold));
       const e = p * p * (3 - 2 * p);
-      out.push(
-        css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))),
-      );
+      out.push(css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))));
     }
   }
   return out;
@@ -425,10 +416,7 @@ function startDotField({
     if (gradientCanvas && gctx) {
       gradientCanvas.width = Math.ceil(W / 8);
       gradientCanvas.height = Math.ceil(H / 8);
-      gradient = gctx.createImageData(
-        gradientCanvas.width,
-        gradientCanvas.height,
-      );
+      gradient = gctx.createImageData(gradientCanvas.width, gradientCanvas.height);
     }
 
     const spacing = W < 640 ? cfg.spacingMobile : cfg.spacing;
@@ -451,9 +439,7 @@ function startDotField({
     for (let r = 0; r < rows; r++) {
       const y = oy + r * spacing;
       const f = Math.max(0, (y / H - cfg.fadeStart) / (1 - cfg.fadeStart));
-      const alpha = fade
-        ? cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6
-        : 1;
+      const alpha = fade ? cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6 : 1;
       for (let c = 0; c < cols; c++) {
         if (anchorCells.has(r * cols + c)) continue;
         const rv = seeded(r * 97 + c);
@@ -464,8 +450,7 @@ function startDotField({
           hue:
             ((c / cols) * 0.55 + (r / rows) * 0.45) * cfg.colorWave +
             seeded(r * 97 + c + 4242) * cfg.colorJitter,
-          base:
-            rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
+          base: rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
           alpha,
           scale: 1,
           vs: 0,
@@ -606,7 +591,7 @@ function startDotField({
       if (multiColor) {
         const h = d.hue + cycle + kick * cfg.colorRipple;
         const n = dotPalette.length;
-        ctx.fillStyle = dotPalette[(((Math.floor(h * n) % n) + n) % n)];
+        ctx.fillStyle = dotPalette[((Math.floor(h * n) % n) + n) % n];
       }
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
       ctx.beginPath();

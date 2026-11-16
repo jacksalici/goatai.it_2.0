@@ -11,13 +11,19 @@ const clients = [
 
 export function Clients() {
   return (
-    <section aria-label="Press" className="shell pt-15.5 pb-10 text-center sm:pt-[70px] md:pt-23 md:pb-18.5">
+    <section
+      aria-label="Press"
+      className="shell pt-15.5 pb-10 text-center sm:pt-[70px] md:pt-23 md:pb-18.5"
+    >
       <p className="mb-7 text-sm text-muted-foreground">They talked about the goat</p>
       <div className="flex flex-wrap items-center justify-center gap-x-7 gap-y-4.5 text-subtle-foreground md:flex-nowrap md:justify-between">
         {clients.map((client) => (
           <span
             key={client.name}
-            className={cn("text-[clamp(17px,2vw,27px)] font-semibold", client.className)}
+            className={cn(
+              "text-[clamp(17px,2vw,27px)] font-semibold",
+              client.className,
+            )}
           >
             {client.name}
           </span>

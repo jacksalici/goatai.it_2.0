@@ -43,7 +43,11 @@ export const services: {
   },
 ];
 
-export const suggestions = ["Run a feasibility study", "Build a prototype", "Talk to a human"];
+export const suggestions = [
+  "Run a feasibility study",
+  "Build a prototype",
+  "Talk to a human",
+];
 
 export const footerColumns = [
   {
