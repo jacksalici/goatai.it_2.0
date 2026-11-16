@@ -21,12 +21,27 @@ export const dotFieldDefaults = {
   // Dots (radii in px)
   spacing: 30, // px between dots
   spacingMobile: 26, // px between dots below 640px
-  dotSmall: 2,
+  dotSmall: 2, // every dot at rest (the "static" pulse mixes in the two below)
   dotMedium: 2.4,
   dotLarge: 3,
   labelDot: 10, // dots that carry a label
   shimmer: 0.06, // idle size wave
   shimmerSpeed: 1,
+
+  // Pulse: random dots swell on their own (not with the "static" pulse).
+  // Each pulse in `dotFieldPulses` below overrides some of these.
+  dotPop: 3.4, // px radius a dot reaches at the top of a pop
+  popChance: 0.02, // chance per second that a dot pops on its own
+  popHold: 1.0, // "bounce": seconds a dot stays big (±30%)
+  popStiffness: 100, // "bounce": spring stiffness, higher = faster
+  popDamping: 16, // "bounce": spring damping, lower = more bounce
+  popBreath: 3.0, // breathing pulses: seconds of one breath, in and out (±30%)
+  popInhale: 0.4, // breathing pulses: share of the breath spent swelling
+  spreadChance: 0.92, // chance a pop sets off one neighbor (average chain: 1 / (1 - chance) dots)
+  spreadDelay: 0.25, // seconds before the neighbor pops (±30%)
+  spreadFade: 1, // each dot down the chain swells this much of the previous one
+  spreadSlow: 1, // each dot down the chain pops and passes on this much slower
+  spreadMin: 0.15, // the chain stops once a dot would swell less than this (0–1)
 
   // Cursor
   influence: 50, // px radius where dots grow and move away
@@ -59,6 +74,24 @@ export const dotFieldDefaults = {
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
+
+/**
+ * Pulses: how dots swell on their own. Each one overrides only the settings it
+ * tunes; the `settings` prop still wins over them.
+ * - `static`: no pulse; dots keep a mix of three fixed sizes.
+ * - `bounce`: a dot springs up, holds, springs back, with a little overshoot.
+ * - `breathe`: a dot takes one smooth breath, with no pause and no bounce.
+ * - `exhale`: like `breathe`, but each chain fades and slows down as it goes.
+ * Every pulse but `static` passes pops on to neighbors, in short chains.
+ */
+export const dotFieldPulses = {
+  static: {},
+  bounce: { popChance: 0.01, spreadChance: 0.85 },
+  breathe: {},
+  exhale: { spreadFade: 0.88, spreadSlow: 1.12 },
+} satisfies Record<string, Partial<DotFieldSettings>>;
+
+export type DotFieldPulse = keyof typeof dotFieldPulses;
 export type DotFieldLabel = { text: string; x: number; y: number };
 
 /** Gradient color areas: palette variable, position (0–1 from top-left), drift and tightness. */
@@ -131,6 +164,7 @@ export function DotField({
   gradient = true,
   dotColor = "background",
   fade = false,
+  pulse = "bounce",
   settings,
   className,
   children,
@@ -139,11 +173,12 @@ export function DotField({
   gradient?: boolean;
   dotColor?: string;
   fade?: boolean | "depth";
+  pulse?: DotFieldPulse;
   settings?: Partial<DotFieldSettings>;
   className?: string;
   children?: React.ReactNode;
 }) {
-  const cfg = { ...dotFieldDefaults, ...settings };
+  const cfg = { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings };
   const rootRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<HTMLCanvasElement>(null);
   const grainRef = useRef<HTMLCanvasElement>(null);
@@ -161,9 +196,10 @@ export function DotField({
         labels,
         dotColor,
         fade,
-        cfg: { ...dotFieldDefaults, ...settings },
+        pulse,
+        cfg: { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings },
       }),
-    [labels, dotColor, fade, settings],
+    [labels, dotColor, fade, pulse, settings],
   );
 
   return (
@@ -248,6 +284,13 @@ type Dot = {
   dy: number;
   vx: number;
   vy: number;
+  pop: number; // how swollen the dot is: 0 = at rest, 1 = full pop
+  vp: number; // spring speed of `pop` ("bounce" only)
+  popStart: number; // time the pop started, 0 when not popping
+  popDur: number; // length of the current pop
+  popAt: number; // time a pop passed on by a neighbor starts, 0 when none
+  popGen: number; // place in the chain: 0 for a dot that popped on its own
+  neighbors: Dot[]; // the up to 8 dots around it
 };
 
 type Anchor = {
@@ -369,6 +412,16 @@ function seeded(i: number) {
 }
 
 /**
+ * One breath over p in 0–1: eases up to 1 at `inhale`, then eases back to 0.
+ * Both halves are half cosine waves, so the motion never stops or jerks.
+ */
+function breath(p: number, inhale: number) {
+  return p < inhale
+    ? 0.5 - 0.5 * Math.cos((Math.PI * p) / inhale)
+    : 0.5 + 0.5 * Math.cos((Math.PI * (p - inhale)) / (1 - inhale));
+}
+
+/**
  * Lays out the grid so the gap from the outer dots to the edge is the same on
  * all four sides. A fixed spacing only centers each axis on its own, so the
  * spacing is nudged (at most ±6%) to the value that best evens out the two
@@ -400,6 +453,7 @@ function startDotField({
   labels,
   dotColor: dotColorName,
   fade,
+  pulse,
   cfg,
 }: {
   root: HTMLDivElement;
@@ -410,6 +464,7 @@ function startDotField({
   labels: DotFieldLabel[];
   dotColor: string;
   fade: boolean | "depth";
+  pulse: DotFieldPulse;
   cfg: DotFieldSettings;
 }) {
   const gctx = gradientCanvas?.getContext("2d");
@@ -497,6 +552,7 @@ function startDotField({
     });
 
     dots = [];
+    const grid: (Dot | undefined)[] = [];
     const sprites = new Map<string, Sprite>();
     for (let r = 0; r < rows; r++) {
       const y = oy + r * spacing;
@@ -515,7 +571,13 @@ function startDotField({
         if (anchorCells.has(r * cols + c)) continue;
         const rv = seeded(r * 97 + c);
         const base =
-          rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall;
+          pulse !== "static"
+            ? cfg.dotSmall
+            : rv > 0.86
+              ? cfg.dotLarge
+              : rv > 0.55
+                ? cfg.dotMedium
+                : cfg.dotSmall;
         let sprite: Sprite | undefined;
         if (sigma > 0.15) {
           const key = `${base}|${r}`;
@@ -525,7 +587,7 @@ function startDotField({
             sprites.set(key, sprite);
           }
         }
-        dots.push({
+        const dot: Dot = {
           sprite,
           x: ox + c * spacing,
           y,
@@ -538,7 +600,29 @@ function startDotField({
           dy: 0,
           vx: 0,
           vy: 0,
-        });
+          pop: 0,
+          vp: 0,
+          popStart: 0,
+          popDur: 0,
+          popAt: 0,
+          popGen: 0,
+          neighbors: [],
+        };
+        dots.push(dot);
+        grid[r * cols + c] = dot;
+      }
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const dot = grid[r * cols + c];
+        if (!dot) continue;
+        for (let nr = r - 1; nr <= r + 1; nr++) {
+          for (let nc = c - 1; nc <= c + 1; nc++) {
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+            const n = grid[nr * cols + nc];
+            if (n && n !== dot) dot.neighbors.push(n);
+          }
+        }
       }
     }
     measureChips();
@@ -616,6 +700,52 @@ function startDotField({
     }
   }
 
+  /**
+   * Pulse: a random dot pops (springs up or takes a breath, by pulse) and may
+   * pass the pop on to one idle neighbor, so pops crawl in short chains. Down
+   * the chain each dot can swell less and go slower (`spreadFade`, `spreadSlow`).
+   */
+  function updatePop(d: Dot, t: number, dt: number) {
+    if (d.popStart && t >= d.popStart + d.popDur) d.popStart = 0;
+    if (
+      !d.popStart &&
+      (d.popAt
+        ? t >= d.popAt
+        : !reduceMotion && d.pop < 0.05 && Math.random() < cfg.popChance * dt)
+    ) {
+      if (!d.popAt) d.popGen = 0;
+      d.popAt = 0;
+      d.popStart = t;
+      const slow = cfg.spreadSlow ** d.popGen;
+      const length = pulse === "bounce" ? cfg.popHold : cfg.popBreath;
+      d.popDur = length * slow * (0.7 + 0.6 * Math.random());
+      const nextGen = d.popGen + 1;
+      if (
+        cfg.spreadFade ** nextGen >= cfg.spreadMin &&
+        Math.random() < cfg.spreadChance
+      ) {
+        const idle = d.neighbors.filter(
+          (n) => !n.popStart && !n.popAt && n.pop < 0.05,
+        );
+        const n = idle[Math.floor(Math.random() * idle.length)];
+        if (n) {
+          n.popGen = nextGen;
+          n.popAt = t + cfg.spreadDelay * slow * (0.7 + 0.6 * Math.random());
+        }
+      }
+    }
+    const amp = cfg.spreadFade ** d.popGen;
+    if (pulse === "bounce") {
+      const target = d.popStart ? amp : 0;
+      d.vp += ((target - d.pop) * cfg.popStiffness - d.vp * cfg.popDamping) * dt;
+      d.pop += d.vp * dt;
+    } else {
+      d.pop = d.popStart
+        ? amp * breath((t - d.popStart) / d.popDur, cfg.popInhale)
+        : 0;
+    }
+  }
+
   function drawDots(t: number, dt: number) {
     for (let i = ripples.length - 1; i >= 0; i--) {
       ripples[i].t += dt;
@@ -664,9 +794,12 @@ function startDotField({
       d.vy = (d.vy + (ty - d.dy) * 160 * dt) * 0.82;
       d.dy += d.vy * dt * 6;
 
+      if (pulse !== "static") updatePop(d, t, dt);
+      const size = d.base + (cfg.dotPop - d.base) * d.pop;
+
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
-      const radius = Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer));
+      const radius = Math.max(0.5, size * d.scale * (1 + wave * cfg.shimmer));
       if (d.sprite) {
         // scaled with the dot, so the blur grows a little with it
         const h = (d.sprite.half * radius) / d.base;
