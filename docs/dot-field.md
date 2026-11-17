@@ -43,7 +43,7 @@ Every knob lives in `dotFieldDefaults` at the top of the source file. Each pulse
 | Fade | `fadeStart`, `fadeMin`, `fadeMax` | Where and how strongly dots fade toward the top (only with `fade`) |
 | Depth fade | `depthKnee`, `depthKneeOpacity`, `depthSharpFrom`, `depthBlur` | Opacity ramp and progressive blur (only with `fade="depth"`) |
 
-The position, color and drift of each gradient blob is set in the `blobs` array, right below the settings.
+The position, color and drift of each gradient blob is set in two layouts right below the settings: `heroBlobs` and `stencilBlobs` (see the `blobs` prop).
 
 ### Props
 
@@ -51,6 +51,7 @@ The position, color and drift of each gradient blob is set in the `blobs` array,
 |---|---|---|
 | `gradient` | `true` | Draws the animated gradient and grain. When `false`, set the background with `className`. `"dots"`: the gradient colors the dots instead of the background (see Stencil dot field). |
 | `dotColor` | `"background"` | Palette variable the dots are drawn with. Ignored with `gradient="dots"`. |
+| `blobs` | by `gradient` | Layout of the gradient color areas: `"hero"` or `"stencil"`. Defaults to `"stencil"` with `gradient="dots"`, `"hero"` otherwise. |
 | `fade` | `false` | `true`: dots fade in from the top. `"depth"`: they also blur toward the top (see Depth dot field). |
 | `pulse` | `"bounce"` | How dots swell on their own: `"static"`, `"bounce"`, `"breathe"` or `"exhale"` (see Pulses). |
 | `labels` | none | Label texts and positions, `x` and `y` from 0 to 1. Each snaps to the nearest grid point. |
@@ -87,6 +88,7 @@ _Experimental._ A more refined Faded dot field: the dots also go out of focus to
 
 _Experimental._ A Depth dot field (or Faded dot field) lit by the gradient of the Gradient dot field: the same moving blue / periwinkle / coral areas, but they color the dots instead of the background, which stays dark. It looks like seeing the hero gradient through a dark sheet with a hole at every dot.
 
+- **Colors.** By default the color areas use a layout of their own (`blobs="stencil"`), not the hero one: the fade hides the top of the box, where the hero keeps its blue, so here the colors sit in the lower, visible band, side by side: blue on the left, periwinkle in the middle, coral on the right. They drift mostly sideways, so they never wander into the faded top. `blobs="hero"` brings back the hero layout, for comparison.
 - **How it is drawn.** The gradient is computed as in the Gradient dot field, but off screen. The dots are drawn first, with their fade, blur, shimmer, pops and cursor effects; then the gradient, stretched over the whole box, replaces their color and keeps their opacity. No grain.
 - **Used in:** nowhere at the moment.
 - **Code:** `<DotField gradient="dots" fade="depth" className="bg-foreground …" />` (or `fade` for no blur)
