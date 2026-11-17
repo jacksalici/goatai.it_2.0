@@ -90,7 +90,7 @@ _Experimental._ A Depth dot field (or Faded dot field) lit by the gradient of th
 
 - **Colors.** By default the color areas use a layout of their own (`blobs="stencil"`), not the hero one: the fade hides the top of the box, where the hero keeps its blue, so here the colors sit in the lower, visible band, side by side: blue on the left, periwinkle in the middle, coral on the right. They drift mostly sideways, so they never wander into the faded top. `blobs="hero"` brings back the hero layout, for comparison.
 - **How it is drawn.** The gradient is computed as in the Gradient dot field, but off screen. The dots are drawn first, with their fade, blur, shimmer, pops and cursor effects; then the gradient, stretched over the whole box, replaces their color and keeps their opacity. No grain.
-- **Used in:** nowhere at the moment.
+- **Used in:** the hidden lab page (`/lab`) only, next to the other variants for comparison.
 - **Code:** `<DotField gradient="dots" fade="depth" className="bg-foreground …" />` (or `fade` for no blur)
 
 ## Pulses
