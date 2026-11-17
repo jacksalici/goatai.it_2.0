@@ -8,7 +8,7 @@ Each doc explains **what** an element is, **why** it looks and behaves the way i
 
 | Doc | What it covers |
 |---|---|
-| [Dot field](dot-field.md) | The animated dot grid of the hero and the "Ask" section, and its variants: Gradient dot field, Faded dot field, Depth dot field |
+| [Dot field](dot-field.md) | The animated dot grid of the hero and the "Ask" section, and its variants: Gradient dot field, Faded dot field, Depth dot field, Stencil dot field |
 
 ## Conventions
 
