@@ -163,8 +163,11 @@ const noLabels: DotFieldLabel[] = [];
 /**
  * Animated dot field. Children render on top of the effect.
  * - `gradient`: moving color background; when off, set the background via `className`.
+ *   `"dots"`: the same moving gradient colors the dots instead of the background,
+ *   as if seen through holes in a dark sheet; set the background via `className`.
  * - `dotColor`: palette variable the dots are drawn with. Pass a list to give every
- *   dot one of those colors, flowing between them in diagonal waves.
+ *   dot one of those colors, flowing between them in diagonal waves. Ignored with
+ *   `gradient="dots"`.
  * - `fade`: dots fade in from the top; `"depth"` also blurs them toward the top.
  */
 export function DotField({
@@ -178,7 +181,7 @@ export function DotField({
   children,
 }: {
   labels?: DotFieldLabel[];
-  gradient?: boolean;
+  gradient?: boolean | "dots";
   dotColor?: string | string[];
   fade?: boolean | "depth";
   pulse?: DotFieldPulse;
@@ -203,19 +206,22 @@ export function DotField({
         chips: chipRefs.current,
         labels,
         dotColor,
+        gradientDots: gradient === "dots",
         fade,
         pulse,
         cfg: { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings },
       }),
-    [labels, dotColor, fade, pulse, settings],
+    [labels, dotColor, gradient, fade, pulse, settings],
   );
+
+  const gradientBackground = gradient === true;
 
   return (
     <div
       ref={rootRef}
       className={cn(
         "relative isolate overflow-hidden",
-        gradient && "bg-blue",
+        gradientBackground && "bg-blue",
         className,
       )}
       style={
@@ -226,7 +232,7 @@ export function DotField({
         } as React.CSSProperties
       }
     >
-      {gradient && (
+      {gradientBackground && (
         <>
           <canvas
             ref={gradientRef}
@@ -495,12 +501,13 @@ function fitGrid(W: number, H: number, target: number) {
 
 function startDotField({
   root,
-  gradientCanvas,
+  gradientCanvas: shownGradient,
   grainCanvas,
   dotCanvas,
   chips,
   labels,
   dotColor: dotColorName,
+  gradientDots,
   fade,
   pulse,
   cfg,
@@ -512,10 +519,15 @@ function startDotField({
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
   dotColor: string | string[];
+  gradientDots: boolean;
   fade: boolean | "depth";
   pulse: DotFieldPulse;
   cfg: DotFieldSettings;
 }) {
+  // With `gradient="dots"` the gradient is drawn off screen and only shows
+  // through the dots.
+  const gradientCanvas =
+    shownGradient ?? (gradientDots ? document.createElement("canvas") : null);
   const gctx = gradientCanvas?.getContext("2d");
   const nctx = grainCanvas?.getContext("2d");
   const ctx = dotCanvas.getContext("2d")!;
@@ -883,6 +895,16 @@ function startDotField({
       }
     }
     ctx.globalAlpha = 1;
+
+    // Gradient-lit dots: the dots drawn so far act as a stencil; the gradient,
+    // stretched over the whole box, replaces their color and keeps their alpha.
+    if (gradientDots && gradientCanvas) {
+      ctx.globalCompositeOperation = "source-in";
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(gradientCanvas, 0, 0, W, H);
+      ctx.globalCompositeOperation = "source-over";
+    }
   }
 
   // Loop
