@@ -13,7 +13,6 @@ export function ServiceArt({
   className?: string;
 }) {
   return (
-    // biome-ignore lint/performance/noImgElement: pre-rendered WebP, nothing for next/image to optimize
     <img
       src={`/services/${name}.webp`}
       alt=""

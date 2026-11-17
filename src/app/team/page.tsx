@@ -26,10 +26,7 @@ export default function TeamPage() {
 
       <section className="shell grid gap-x-6 gap-y-12 pb-17 sm:grid-cols-2 sm:pb-24 md:grid-cols-3">
         {team.map((member, index) => (
-          <article
-            // biome-ignore lint/suspicious/noArrayIndexKey: static list, never reordered
-            key={`${member.role}-${index}`}
-          >
+          <article key={`${member.role}-${index}`}>
             <div className="relative aspect-4/5 overflow-hidden rounded-[20px] bg-periwinkle">
               {member.image ? (
                 <Image

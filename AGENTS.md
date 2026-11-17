@@ -2,12 +2,11 @@
 
 ## Code quality.
 
-Type checker: TypeScript (`tsc`). Linter and formatter: Biome, configured in `biome.jsonc`.
+Type checker: TypeScript (`tsc`). Formatter: `bun fmt`, configured in the `[fmt]` section of `bunfig.toml`. There is no linter.
 
-- After editing code, run `npm run fix`: it formats the code and applies the safe lint fixes.
-- Before committing or calling a task done, run `npm run check` (lint, format check, type check). It must pass with no errors and no warnings.
-- Fix what the checks report in the code. Don't silence them with `biome-ignore`, `@ts-ignore`, `@ts-expect-error`, `any` or config changes.
-- Only for a false positive, suppress that single line with a `biome-ignore` comment that states the reason.
+- After editing code, run `bun run format`.
+- Before committing or calling a task done, run `bun run check` (format check, type check). It must pass with no errors.
+- Fix what the checks report in the code. Don't silence them with `@ts-ignore`, `@ts-expect-error`, `any` or config changes.
 
 ## Committing rules.
 
