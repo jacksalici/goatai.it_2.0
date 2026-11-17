@@ -25,7 +25,6 @@ export default function ContactPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Contact"
         title={
           <>
             Let&apos;s talk about <em>your problem.</em>

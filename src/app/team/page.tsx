@@ -15,7 +15,6 @@ export default function TeamPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Team"
         title={
           <>
             A small herd, <em>big brains.</em>

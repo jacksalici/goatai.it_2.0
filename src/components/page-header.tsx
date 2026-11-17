@@ -1,20 +1,15 @@
-/** Title block at the top of every inner page. */
+/** Title block at the top of every inner page: h1 with serif accent, no eyebrow. */
 export function PageHeader({
-  eyebrow,
   title,
   intro,
   children,
 }: {
-  eyebrow: string;
   title: React.ReactNode;
   intro?: React.ReactNode;
   children?: React.ReactNode;
 }) {
   return (
     <header className="shell pt-12 pb-12 sm:pt-16 sm:pb-16">
-      <p className="mb-4 text-[13px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-        {eyebrow}
-      </p>
       <h1 className="max-w-225 text-balance font-medium tracking-[-0.035em] text-[44px] leading-[1.05] sm:text-[clamp(52px,6vw,80px)]">
         {title}
       </h1>

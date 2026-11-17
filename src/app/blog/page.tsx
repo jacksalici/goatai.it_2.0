@@ -13,7 +13,6 @@ export default function BlogPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Field notes"
         title={
           <>
             From the <em>pasture.</em>

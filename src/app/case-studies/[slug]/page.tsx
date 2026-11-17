@@ -31,9 +31,6 @@ export default async function CaseStudyPage({ params }: Props) {
           <ArrowLeft className="size-4 transition-transform group-hover:-translate-x-1" strokeWidth={1.33} />
           All case studies
         </Link>
-        <p className="mb-4 text-[13px] font-medium tracking-[0.15em] text-muted-foreground uppercase">
-          {study.sector} · {study.client}
-        </p>
         <h1 className="max-w-225 text-balance font-medium tracking-[-0.035em] text-[44px] leading-[1.05] sm:text-[clamp(52px,6vw,76px)]">
           {study.title}
         </h1>
