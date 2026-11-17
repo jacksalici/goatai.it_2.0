@@ -11,6 +11,12 @@ feat: a commit of the type feat introduces a new feature to the codebase (this c
 BREAKING CHANGE: a commit that has a footer BREAKING CHANGE:, or appends a ! after the type/scope, introduces a breaking API change (correlating with MAJOR in Semantic Versioning). A BREAKING CHANGE can be part of commits of any type.
 types other than fix: and feat: allowed are build:, chore:, ci:, docs:, style:, refactor:, perf:, test:.
 
+## Documentation.
+
+- `docs/` holds the design and component docs, indexed in `docs/index.md`. 
+- When working with a documented element, read its doc there first. 
+- When you change a documented element, update its doc in the same change.
+
 <!-- BEGIN:nextjs-agent-rules -->
 
 ## This is NOT the Next.js you know

@@ -28,7 +28,7 @@ export function AskSection() {
       <DotField
         gradient={false}
         dotColor={askDotColors}
-        fade
+        fade="depth"
         className="grid min-h-155 place-items-center rounded-[25px] bg-foreground px-4.5 py-16 sm:min-h-140 sm:rounded-[32px] sm:px-10 sm:py-20"
       >
         <div aria-hidden="true" className="aurora-orbs absolute inset-0 -z-20 [--glow-x:46%] [--glow-y:30%]" />
@@ -93,7 +93,7 @@ export function AskSection() {
                 variant="outline"
                 size="sm"
                 onClick={() => setQuestion(suggestion)}
-                className="rounded-full border-background/60 bg-foreground/80 px-3 text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
+                className="rounded-full border-background/60 bg-foreground/20 px-3 backdrop-blur-xs text-xs font-normal text-background shadow-none hover:bg-background hover:text-foreground sm:px-4 sm:text-sm"
               >
                 {suggestion}
               </Button>
@@ -103,7 +103,7 @@ export function AskSection() {
           {sent && (
             <div
               role="status"
-              className="mt-4.5 w-full max-w-190 rounded-2xl border border-background/30 bg-foreground/70 px-4.5 py-3 text-left text-sm text-background"
+              className="mt-4.5 w-full max-w-190 rounded-2xl border border-background/30 bg-foreground/50 px-4.5 backdrop-blur-xs py-3 text-left text-sm text-background"
             >
               <span className="font-medium text-brand">Received</span>
               <p className="mt-0.5">“{sent}” — the herd will be in touch.</p>
