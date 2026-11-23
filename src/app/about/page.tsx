@@ -36,7 +36,6 @@ export default function AboutPage() {
   return (
     <>
       <PageHeader
-        eyebrow="About"
         title={
           <>
             A research lab that <em>learned to ship.</em>

@@ -1,0 +1,120 @@
+# Dot field
+
+An animated grid of dots that reacts to the cursor. It is one of the most recognizable visual elements of the GoatAI brand: it is the hero visual on the home page and the background of the "Ask the goat anything" section.
+
+Source: [src/components/dot-field.tsx](../src/components/dot-field.tsx)
+
+## Anatomy
+
+From back to front, a dot field is made of up to five layers:
+
+1. **Background.** Either the animated gradient or a flat color set on the container.
+2. **Gradient** _(optional)_. Soft color areas ("blobs") in blue, periwinkle and coral that slowly drift and blend into each other. Colors are mixed in OKLab, so the blends look even to the eye.
+3. **Grain** _(only with the gradient)_. A light film-grain noise on top of the gradient, re-drawn many times per second (`grainFps`).
+4. **Dots.** A regular grid of square cells, centered in the container with the same gap to the edge on all four sides (the spacing is nudged slightly to make the gaps match; on near-square boxes a difference of a few pixels can remain). With the `static` pulse each dot gets one of three sizes at random (small, medium, large), always the same across reloads; with any other pulse all dots share the small size at rest and grow only when they pop (see Pulses).
+5. **Labels** _(optional)_. Some grid points carry a label: a bigger dot that grows into a pill with text (the "dot-to-chip morph").
+
+Content passed as children is rendered on top of all layers.
+
+## Behavior
+
+- **Shimmer.** At rest, dots slowly pulse in size and opacity, in a wave that runs diagonally across the grid.
+- **Pulse.** Unless the pulse is `static`, now and then a random dot pops (swells and shrinks back) on its own and may pass the pop on to one of its idle neighbors, after a short delay. Each pop sets off at most one neighbor, so pops crawl across the grid in short chains that always die out, like a signal moving through living tissue, instead of flooding the field. How a single pop moves and how a chain evolves depend on the pulse (see Pulses).
+- **Cursor.** Dots near the cursor grow and move away from it, with a springy motion.
+- **Ripple.** Clicking anywhere sends a wave through the grid.
+- **Labels.** Every few seconds a random label opens on its own and closes after a while (only a few open at once, `maxOpen`). Hovering a label dot opens it, with a smaller ripple, and keeps it open while the cursor is on it.
+- **Reduced motion.** With the system "reduce motion" setting on, the gradient and shimmer slow down, the grain stops changing and labels and pops no longer start on their own.
+- **Off screen.** Animation pauses when the field is not visible.
+
+## Settings
+
+Every knob lives in `dotFieldDefaults` at the top of the source file. Each pulse overrides the few it tunes (`dotFieldPulses`, right below), and a single instance can override any of them through the `settings` prop, which wins over both. Colors are not settings: they come from the palette in [src/app/colors.css](../src/app/colors.css).
+
+| Group      | Settings                                                                                               | What they control                                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gradient   | `driftSpeed`, `driftRange`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps`             | Speed, travel distance and shape of the color areas, grain strength                                                                                                                                                                                                                      |
+| Dots       | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (a tighter spacing on small screens, nudged slightly to even out the margins), dot sizes, idle pulse                                                                                                                                                                        |
+| Pulse      | `dotPop`, `popChance`, `spreadChance`, `spreadDelay`, `spreadFade`, `spreadSlow`, `spreadMin`          | Size a popping dot reaches, how often dots pop on their own, how likely and how fast a pop passes to a neighbor, how a chain fades, slows down and ends. Every dot in a chain adds to the total number of pops, so a stronger spread needs a lower `popChance` to keep the same density. |
+| Bounce     | `popHold`, `popStiffness`, `popDamping`                                                                | How long a dot stays big, speed and bounce of the spring (only with the `bounce` pulse)                                                                                                                                                                                                  |
+| Breath     | `popBreath`, `popInhale`                                                                               | Length of a breath and share of it spent swelling (only with `breathe` and `exhale`)                                                                                                                                                                                                     |
+| Cursor     | `influence`, `magnify`, `repel`, `hoverRadius`                                                         | How far the cursor reaches and how much dots grow and move                                                                                                                                                                                                                               |
+| Ripple     | `ripple`, `rippleSpeed`, `rippleLife`                                                                  | Strength, speed and duration of the click wave                                                                                                                                                                                                                                           |
+| Labels     | `labelEvery`, `labelHold`, `maxOpen`, `morphMs`, `hoverLinger`                                         | Timing of automatic labels and of the morph                                                                                                                                                                                                                                              |
+| Fade       | `fadeStart`, `fadeMin`, `fadeMax`                                                                      | Where and how strongly dots fade toward the top (only with `fade`)                                                                                                                                                                                                                       |
+| Depth fade | `depthKnee`, `depthKneeOpacity`, `depthSharpFrom`, `depthBlur`                                         | Opacity ramp and progressive blur (only with `fade="depth"`)                                                                                                                                                                                                                             |
+
+The position, color and drift of each gradient blob is set in the `blobs` array, right below the settings.
+
+### Props
+
+| Prop       | Default        | Effect                                                                                             |
+| ---------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `gradient` | `true`         | Draws the animated gradient and grain. When `false`, set the background with `className`.          |
+| `dotColor` | `"background"` | Palette variable the dots are drawn with.                                                          |
+| `fade`     | `false`        | `true`: dots fade in from the top. `"depth"`: they also blur toward the top (see Depth dot field). |
+| `pulse`    | `"bounce"`     | How dots swell on their own: `"static"`, `"bounce"`, `"breathe"` or `"exhale"` (see Pulses).       |
+| `labels`   | none           | Label texts and positions, `x` and `y` from 0 to 1. Each snaps to the nearest grid point.          |
+| `settings` | none           | Overrides for any value in `dotFieldDefaults`.                                                     |
+
+## Variants
+
+### Gradient dot field
+
+Also called "dot field over gradient". Cream dots on the animated blue / periwinkle / coral gradient, with grain and labels.
+
+- **Used in:** the home page hero ([src/components/hero-visual.tsx](../src/components/hero-visual.tsx)).
+- **Labels:** the GoatAI capabilities, defined in `capabilities` in [src/lib/content.ts](../src/lib/content.ts).
+- **Code:** `<DotField labels={capabilities} />`, all other props at their defaults.
+
+### Faded dot field
+
+Brand-blue dots on a flat dark background (`--ink`). Dots fade in from the top, so the upper part of the section stays almost empty and the content sits on a calm area. No gradient, no grain, no labels.
+
+- **Used in:** nowhere at the moment (the "Ask" section is trying the Depth dot field).
+- **Code:** `<DotField gradient={false} dotColor="brand" fade className="bg-foreground …" />`
+
+### Depth dot field
+
+_Experimental._ A more refined Faded dot field: the dots also go out of focus toward the top, like a shallow depth of field. Same colors and background as the Faded dot field. Both effects depend only on the height, and each is tuned by its own settings (see Settings).
+
+- **Opacity.** A vertical mask that multiplies the dot opacity: it grows from invisible at the top edge to full at the bottom edge in two linear segments. Up to a knee (`depthKnee`) it climbs slowly to a low opacity (`depthKneeOpacity`), then it climbs steeply to full. The top stays faint and most of the growth happens lower down, like an ease-in. The last row sits one spacing above the edge, so it is just under full.
+- **Blur.** A progressive gaussian blur: dots are sharp near the bottom, up to a set height (`depthSharpFrom`), then the blur grows linearly to its maximum at the top (`depthBlur`, a Figma/CSS-style radius expressed as a fraction of the spacing, so it scales with the grid). The blur zone must overlap the visible part of the opacity ramp: if it only covers rows that are nearly invisible, it cannot be seen. The blur spreads a dot without changing its total opacity; overlapping halos stack as layers of the same color.
+- **How it is drawn.** Each blurred row uses pre-rendered sprites (one per row), made once per resize, so the animation cost is the same as the Faded dot field. The blur scales with the dot when it grows under the cursor.
+- **Used in:** the "Ask the goat anything" section ([src/components/ask-section.tsx](../src/components/ask-section.tsx)), on the home and contact pages.
+- **Code:** `<DotField gradient={false} dotColor="brand" fade="depth" className="bg-foreground …" />`
+
+## Pulses
+
+A pulse is the way dots swell on their own. It is independent of the variant: any variant can use any pulse, set with the `pulse` prop. Each pulse is a small set of overrides in `dotFieldPulses`, so tuning one never changes the others.
+
+### Static
+
+The original dot field: no pops. Dots keep a random mix of three fixed sizes, and move only with the shimmer, the cursor and ripples.
+
+- **Code:** `pulse="static"`
+
+### Bounce
+
+A dot springs up, holds for a moment, then springs back, with a little overshoot that echoes the label morph. Pops pass to neighbors in chains, every dot of a chain popping to full size. Lively, but a bit mechanical.
+
+- **Code:** `pulse="bounce"`, the default.
+
+### Breathe
+
+A dot takes one slow breath: it swells and shrinks back in a single smooth curve, with no pause at the top and no bounce, and the exhale is longer than the inhale. Breaths pass to neighbors in chains; since each breath lasts much longer than the delay to the next dot, the breaths of a chain overlap into a soft wave of sizes.
+
+- **Code:** `pulse="breathe"`
+
+### Exhale
+
+Breathe, with chains that run out of breath: down the chain each dot swells a little less and breathes and passes on a little slower than the one before (`spreadFade`, `spreadSlow`), so a chain fades out instead of stopping abruptly. Once a dot would barely swell (`spreadMin`), the chain ends.
+
+- **Code:** `pulse="exhale"`
+
+## Do / Don't
+
+- Do take every color from the palette in `colors.css`, never a hard-coded value.
+- Do keep labels short (one to three words): an open pill must fit inside the field on mobile.
+- Do give any semi-transparent element placed over the field (buttons, chips, messages) a backdrop blur, so the dots behind it turn into a soft texture and never compete with the text. Even when the text is already readable, keep it as a rule. Keep the blur close to the dot size and the fill light: a blur much larger than the dots spreads them until they vanish, and the element looks like a solid fill instead of glass. When matching a Figma design, its blur value is about twice the CSS `blur()` value.
+
+_More rules to be defined as the variants evolve._

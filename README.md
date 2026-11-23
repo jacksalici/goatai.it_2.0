@@ -20,6 +20,7 @@ bun run check  # format check and type check (bun fmt + tsc)
 ## Structure
 
 ```
+docs/                # design and component docs (start at docs/index.md)
 src/app/colors.css   # color palette — edit to re-theme the site
 src/app/globals.css  # Tailwind setup, fonts, breakpoints
 src/app/layout.tsx   # shared header + footer

@@ -11,21 +11,37 @@ import { cn } from "@/lib/utils";
 export const dotFieldDefaults = {
   // Gradient
   driftSpeed: 0.16, // how fast the color areas move
-  sway: 0.04, // gentle wobble of the color edges
+  driftRange: 3.0, // how far the color areas travel (multiplies each blob's ax / ay)
+  sway: 0.08, // gentle wobble of the color edges
   blobTightness: 2.2, // higher = smaller color areas
-  colorSharpness: 1.6, // higher = purer colors, harder blends
+  colorSharpness: 2.0, // higher = purer colors, harder blends
   grain: 0.05, // film-grain opacity
   grainFps: 24, // grain re-seeds per second
 
   // Dots (radii in px)
   spacing: 30, // px between dots
   spacingMobile: 26, // px between dots below 640px
-  dotSmall: 2,
+  dotSmall: 2, // every dot at rest (the "static" pulse mixes in the two below)
   dotMedium: 2.4,
   dotLarge: 3,
   labelDot: 10, // dots that carry a label
   shimmer: 0.06, // idle size wave
   shimmerSpeed: 1,
+
+  // Pulse: random dots swell on their own (not with the "static" pulse).
+  // Each pulse in `dotFieldPulses` below overrides some of these.
+  dotPop: 3.4, // px radius a dot reaches at the top of a pop
+  popChance: 0.02, // chance per second that a dot pops on its own
+  popHold: 1.0, // "bounce": seconds a dot stays big (±30%)
+  popStiffness: 100, // "bounce": spring stiffness, higher = faster
+  popDamping: 16, // "bounce": spring damping, lower = more bounce
+  popBreath: 3.0, // breathing pulses: seconds of one breath, in and out (±30%)
+  popInhale: 0.4, // breathing pulses: share of the breath spent swelling
+  spreadChance: 0.92, // chance a pop sets off one neighbor (average chain: 1 / (1 - chance) dots)
+  spreadDelay: 0.25, // seconds before the neighbor pops (±30%)
+  spreadFade: 1, // each dot down the chain swells this much of the previous one
+  spreadSlow: 1, // each dot down the chain pops and passes on this much slower
+  spreadMin: 0.15, // the chain stops once a dot would swell less than this (0–1)
 
   // Cursor
   influence: 50, // px radius where dots grow and move away
@@ -50,6 +66,12 @@ export const dotFieldDefaults = {
   fadeMin: 0.04, // dot opacity at the top of the fade
   fadeMax: 0.95, // dot opacity at the bottom
 
+  // Depth fade (only with `fade="depth"`)
+  depthKnee: 0.3, // 0–1 from the top: where the opacity ramp turns steep
+  depthKneeOpacity: 0.2, // dot opacity at the knee (0 at the top, 1 at the bottom)
+  depthSharpFrom: 0.85, // 0–1 from the top: below this, dots are sharp
+  depthBlur: 0.35, // blur radius at the top, as a fraction of the spacing
+
   // Multi-color dots (only when `dotColor` is a list)
   colorSpeed: 0.05, // palette cycles per second
   colorWave: 0.9, // palette cycles across the box (diagonal bands)
@@ -59,6 +81,24 @@ export const dotFieldDefaults = {
 };
 
 export type DotFieldSettings = typeof dotFieldDefaults;
+
+/**
+ * Pulses: how dots swell on their own. Each one overrides only the settings it
+ * tunes; the `settings` prop still wins over them.
+ * - `static`: no pulse; dots keep a mix of three fixed sizes.
+ * - `bounce`: a dot springs up, holds, springs back, with a little overshoot.
+ * - `breathe`: a dot takes one smooth breath, with no pause and no bounce.
+ * - `exhale`: like `breathe`, but each chain fades and slows down as it goes.
+ * Every pulse but `static` passes pops on to neighbors, in short chains.
+ */
+export const dotFieldPulses = {
+  static: {},
+  bounce: { popChance: 0.01, spreadChance: 0.85 },
+  breathe: {},
+  exhale: { spreadFade: 0.88, spreadSlow: 1.12 },
+} satisfies Record<string, Partial<DotFieldSettings>>;
+
+export type DotFieldPulse = keyof typeof dotFieldPulses;
 export type DotFieldLabel = { text: string; x: number; y: number };
 
 /** Gradient color areas: palette variable, position (0–1 from top-left), drift and tightness. */
@@ -125,13 +165,14 @@ const noLabels: DotFieldLabel[] = [];
  * - `gradient`: moving color background; when off, set the background via `className`.
  * - `dotColor`: palette variable the dots are drawn with. Pass a list to give every
  *   dot one of those colors, flowing between them in diagonal waves.
- * - `fade`: dots fade in from the top.
+ * - `fade`: dots fade in from the top; `"depth"` also blurs them toward the top.
  */
 export function DotField({
   labels = noLabels,
   gradient = true,
   dotColor = "background",
   fade = false,
+  pulse = "bounce",
   settings,
   className,
   children,
@@ -139,12 +180,13 @@ export function DotField({
   labels?: DotFieldLabel[];
   gradient?: boolean;
   dotColor?: string | string[];
-  fade?: boolean;
+  fade?: boolean | "depth";
+  pulse?: DotFieldPulse;
   settings?: Partial<DotFieldSettings>;
   className?: string;
   children?: React.ReactNode;
 }) {
-  const cfg = { ...dotFieldDefaults, ...settings };
+  const cfg = { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings };
   const rootRef = useRef<HTMLDivElement>(null);
   const gradientRef = useRef<HTMLCanvasElement>(null);
   const grainRef = useRef<HTMLCanvasElement>(null);
@@ -162,9 +204,10 @@ export function DotField({
         labels,
         dotColor,
         fade,
-        cfg: { ...dotFieldDefaults, ...settings },
+        pulse,
+        cfg: { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings },
       }),
-    [labels, dotColor, fade, settings],
+    [labels, dotColor, fade, pulse, settings],
   );
 
   return (
@@ -234,7 +277,15 @@ export function DotField({
 
 type RGB = [number, number, number];
 
+/** Blurred dot: an alpha mask plus one colored copy per color it was drawn in. */
+type Sprite = {
+  mask: HTMLCanvasElement;
+  half: number;
+  tints: Map<string, HTMLCanvasElement>;
+};
+
 type Dot = {
+  sprite?: Sprite; // pre-blurred dot, drawn instead of a sharp circle
   x: number;
   y: number;
   wave: number; // diagonal offset for the shimmer
@@ -247,6 +298,13 @@ type Dot = {
   dy: number;
   vx: number;
   vy: number;
+  pop: number; // how swollen the dot is: 0 = at rest, 1 = full pop
+  vp: number; // spring speed of `pop` ("bounce" only)
+  popStart: number; // time the pop started, 0 when not popping
+  popDur: number; // length of the current pop
+  popAt: number; // time a pop passed on by a neighbor starts, 0 when none
+  popGen: number; // place in the chain: 0 for a dot that popped on its own
+  neighbors: Dot[]; // the up to 8 dots around it
 };
 
 type Anchor = {
@@ -305,6 +363,71 @@ function oklabToRgb(L: number, a: number, b: number): RGB {
 }
 
 /**
+ * Pre-renders a dot of `radius` px with a gaussian blur of `sigma` px, in
+ * device pixels. The blur is done by hand (separable kernel) because canvas
+ * `filter` is not available everywhere. It spreads the dot without changing
+ * its total opacity. The result is a mask: `tinted` colors it.
+ */
+function blurredDot(radius: number, sigma: number, dpr: number): Sprite {
+  const half = radius + Math.ceil(3 * sigma) + 1;
+  const n = Math.ceil(half * 2 * dpr);
+  const canvas = document.createElement("canvas");
+  canvas.width = canvas.height = n;
+  const c = canvas.getContext("2d")!;
+  c.beginPath();
+  c.arc(n / 2, n / 2, radius * dpr, 0, Math.PI * 2);
+  c.fill();
+  const img = c.getImageData(0, 0, n, n);
+
+  const s = sigma * dpr;
+  const kr = Math.ceil(3 * s);
+  const kernel: number[] = [];
+  let ksum = 0;
+  for (let i = -kr; i <= kr; i++) {
+    const w = Math.exp(-(i * i) / (2 * s * s));
+    kernel.push(w);
+    ksum += w;
+  }
+  let a = Float32Array.from({ length: n * n }, (_, i) => img.data[i * 4 + 3] / 255);
+  for (const horizontal of [true, false]) {
+    const out = new Float32Array(n * n);
+    for (let y = 0; y < n; y++) {
+      for (let x = 0; x < n; x++) {
+        let v = 0;
+        for (let k = -kr; k <= kr; k++) {
+          const xx = horizontal ? x + k : x;
+          const yy = horizontal ? y : y + k;
+          if (xx >= 0 && xx < n && yy >= 0 && yy < n)
+            v += a[yy * n + xx] * kernel[k + kr];
+        }
+        out[y * n + x] = v / ksum;
+      }
+    }
+    a = out;
+  }
+  for (let i = 0; i < n * n; i++) img.data[i * 4 + 3] = Math.round(a[i] * 255);
+  c.putImageData(img, 0, 0);
+  return { mask: canvas, half: n / 2 / dpr, tints: new Map() };
+}
+
+/** The sprite's blurred dot in `color`, made on first use. */
+function tinted(sprite: Sprite, color: string) {
+  let canvas = sprite.tints.get(color);
+  if (!canvas) {
+    canvas = document.createElement("canvas");
+    canvas.width = sprite.mask.width;
+    canvas.height = sprite.mask.height;
+    const c = canvas.getContext("2d")!;
+    c.drawImage(sprite.mask, 0, 0);
+    c.globalCompositeOperation = "source-in";
+    c.fillStyle = color;
+    c.fillRect(0, 0, canvas.width, canvas.height);
+    sprite.tints.set(color, canvas);
+  }
+  return canvas;
+}
+
+/**
  * Looping palette as a lookup table of CSS colors. Each color holds for `hold`
  * of its slot, then eases into the next one through OKLab.
  */
@@ -331,6 +454,39 @@ function seeded(i: number) {
   return x - Math.floor(x);
 }
 
+/**
+ * One breath over p in 0–1: eases up to 1 at `inhale`, then eases back to 0.
+ * Both halves are half cosine waves, so the motion never stops or jerks.
+ */
+function breath(p: number, inhale: number) {
+  return p < inhale
+    ? 0.5 - 0.5 * Math.cos((Math.PI * p) / inhale)
+    : 0.5 + 0.5 * Math.cos((Math.PI * (p - inhale)) / (1 - inhale));
+}
+
+/**
+ * Lays out the grid so the gap from the outer dots to the edge is the same on
+ * all four sides. A fixed spacing only centers each axis on its own, so the
+ * spacing is nudged (at most ±6%) to the value that best evens out the two
+ * margins, preferring values close to the target.
+ */
+function fitGrid(W: number, H: number, target: number) {
+  let best = { spacing: target, cols: 1, rows: 1, ox: 0, oy: 0 };
+  let bestCost = Infinity;
+  for (let s = target * 0.94; s <= target * 1.06; s += 0.01) {
+    const cols = Math.floor((W - s * 1.9) / s) + 1;
+    const rows = Math.floor((H - s * 1.9) / s) + 1;
+    const ox = (W - (cols - 1) * s) / 2;
+    const oy = (H - (rows - 1) * s) / 2;
+    const cost = Math.abs(ox - oy) + 0.2 * Math.abs(s - target);
+    if (cost < bestCost) {
+      bestCost = cost;
+      best = { spacing: s, cols, rows, ox, oy };
+    }
+  }
+  return best;
+}
+
 function startDotField({
   root,
   gradientCanvas,
@@ -340,6 +496,7 @@ function startDotField({
   labels,
   dotColor: dotColorName,
   fade,
+  pulse,
   cfg,
 }: {
   root: HTMLDivElement;
@@ -349,7 +506,8 @@ function startDotField({
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
   dotColor: string | string[];
-  fade: boolean;
+  fade: boolean | "depth";
+  pulse: DotFieldPulse;
   cfg: DotFieldSettings;
 }) {
   const gctx = gradientCanvas?.getContext("2d");
@@ -421,11 +579,11 @@ function startDotField({
       gradient = gctx.createImageData(gradientCanvas.width, gradientCanvas.height);
     }
 
-    const spacing = W < 640 ? cfg.spacingMobile : cfg.spacing;
-    const cols = Math.floor((W - spacing * 1.9) / spacing) + 1;
-    const rows = Math.floor((H - spacing * 1.9) / spacing) + 1;
-    const ox = (W - (cols - 1) * spacing) / 2;
-    const oy = (H - (rows - 1) * spacing) / 2;
+    const { spacing, cols, rows, ox, oy } = fitGrid(
+      W,
+      H,
+      W < 640 ? cfg.spacingMobile : cfg.spacing,
+    );
 
     // Label dots snap to the nearest grid point and are drawn by their chip.
     const anchorCells = new Set<number>();
@@ -438,21 +596,50 @@ function startDotField({
     });
 
     dots = [];
+    const grid: (Dot | undefined)[] = [];
+    const sprites = new Map<string, Sprite>();
     for (let r = 0; r < rows; r++) {
       const y = oy + r * spacing;
-      const f = Math.max(0, (y / H - cfg.fadeStart) / (1 - cfg.fadeStart));
-      const alpha = fade ? cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6 : 1;
+      const t = y / H;
+      let alpha = 1;
+      let sigma = 0; // gaussian blur in px (half the Figma/CSS blur radius)
+      if (fade === "depth") {
+        const { depthKnee: k, depthKneeOpacity: ko, depthSharpFrom: sf } = cfg;
+        alpha = t < k ? (ko * t) / k : ko + ((1 - ko) * (t - k)) / (1 - k);
+        sigma = (cfg.depthBlur * spacing * Math.max(0, (sf - t) / sf)) / 2;
+      } else if (fade) {
+        const f = Math.max(0, (t - cfg.fadeStart) / (1 - cfg.fadeStart));
+        alpha = cfg.fadeMin + (cfg.fadeMax - cfg.fadeMin) * f ** 1.6;
+      }
       for (let c = 0; c < cols; c++) {
         if (anchorCells.has(r * cols + c)) continue;
         const rv = seeded(r * 97 + c);
-        dots.push({
+        const base =
+          pulse !== "static"
+            ? cfg.dotSmall
+            : rv > 0.86
+              ? cfg.dotLarge
+              : rv > 0.55
+                ? cfg.dotMedium
+                : cfg.dotSmall;
+        let sprite: Sprite | undefined;
+        if (sigma > 0.15) {
+          const key = `${base}|${r}`;
+          sprite = sprites.get(key);
+          if (!sprite) {
+            sprite = blurredDot(base, sigma, dpr);
+            sprites.set(key, sprite);
+          }
+        }
+        const dot: Dot = {
+          sprite,
           x: ox + c * spacing,
           y,
           wave: (c + r) * 0.35 - seeded(r * 97 + c + 999) * 2,
           hue:
             ((c / cols) * 0.55 + (r / rows) * 0.45) * cfg.colorWave +
             seeded(r * 97 + c + 4242) * cfg.colorJitter,
-          base: rv > 0.86 ? cfg.dotLarge : rv > 0.55 ? cfg.dotMedium : cfg.dotSmall,
+          base,
           alpha,
           scale: 1,
           vs: 0,
@@ -460,7 +647,29 @@ function startDotField({
           dy: 0,
           vx: 0,
           vy: 0,
-        });
+          pop: 0,
+          vp: 0,
+          popStart: 0,
+          popDur: 0,
+          popAt: 0,
+          popGen: 0,
+          neighbors: [],
+        };
+        dots.push(dot);
+        grid[r * cols + c] = dot;
+      }
+    }
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const dot = grid[r * cols + c];
+        if (!dot) continue;
+        for (let nr = r - 1; nr <= r + 1; nr++) {
+          for (let nc = c - 1; nc <= c + 1; nc++) {
+            if (nr < 0 || nr >= rows || nc < 0 || nc >= cols) continue;
+            const n = grid[nr * cols + nc];
+            if (n && n !== dot) dot.neighbors.push(n);
+          }
+        }
       }
     }
     measureChips();
@@ -471,8 +680,8 @@ function startDotField({
     const { width: gw, height: gh, data } = gradient;
     const asp = W / H;
     const centers = blobs.map((b) => [
-      (b.x + b.ax * Math.sin(drift * b.fx)) * asp,
-      b.y + b.ay * Math.cos(drift * b.fy),
+      (b.x + cfg.driftRange * b.ax * Math.sin(drift * b.fx)) * asp,
+      b.y + cfg.driftRange * b.ay * Math.cos(drift * b.fy),
       cfg.blobTightness * b.k * cfg.colorSharpness,
     ]);
     let i = 0;
@@ -538,6 +747,48 @@ function startDotField({
     }
   }
 
+  /**
+   * Pulse: a random dot pops (springs up or takes a breath, by pulse) and may
+   * pass the pop on to one idle neighbor, so pops crawl in short chains. Down
+   * the chain each dot can swell less and go slower (`spreadFade`, `spreadSlow`).
+   */
+  function updatePop(d: Dot, t: number, dt: number) {
+    if (d.popStart && t >= d.popStart + d.popDur) d.popStart = 0;
+    if (
+      !d.popStart &&
+      (d.popAt
+        ? t >= d.popAt
+        : !reduceMotion && d.pop < 0.05 && Math.random() < cfg.popChance * dt)
+    ) {
+      if (!d.popAt) d.popGen = 0;
+      d.popAt = 0;
+      d.popStart = t;
+      const slow = cfg.spreadSlow ** d.popGen;
+      const length = pulse === "bounce" ? cfg.popHold : cfg.popBreath;
+      d.popDur = length * slow * (0.7 + 0.6 * Math.random());
+      const nextGen = d.popGen + 1;
+      if (
+        cfg.spreadFade ** nextGen >= cfg.spreadMin &&
+        Math.random() < cfg.spreadChance
+      ) {
+        const idle = d.neighbors.filter((n) => !n.popStart && !n.popAt && n.pop < 0.05);
+        const n = idle[Math.floor(Math.random() * idle.length)];
+        if (n) {
+          n.popGen = nextGen;
+          n.popAt = t + cfg.spreadDelay * slow * (0.7 + 0.6 * Math.random());
+        }
+      }
+    }
+    const amp = cfg.spreadFade ** d.popGen;
+    if (pulse === "bounce") {
+      const target = d.popStart ? amp : 0;
+      d.vp += ((target - d.pop) * cfg.popStiffness - d.vp * cfg.popDamping) * dt;
+      d.pop += d.vp * dt;
+    } else {
+      d.pop = d.popStart ? amp * breath((t - d.popStart) / d.popDur, cfg.popInhale) : 0;
+    }
+  }
+
   function drawDots(t: number, dt: number) {
     for (let i = ripples.length - 1; i >= 0; i--) {
       ripples[i].t += dt;
@@ -589,22 +840,34 @@ function startDotField({
       d.vy = (d.vy + (ty - d.dy) * 160 * dt) * 0.82;
       d.dy += d.vy * dt * 6;
 
+      if (pulse !== "static") updatePop(d, t, dt);
+      const size = d.base + (cfg.dotPop - d.base) * d.pop;
+
       const wave = Math.sin(t * cfg.shimmerSpeed - d.wave);
+      let color = dotPalette[0];
       if (multiColor) {
         const h = d.hue + cycle + kick * cfg.colorRipple;
         const n = dotPalette.length;
-        ctx.fillStyle = dotPalette[((Math.floor(h * n) % n) + n) % n];
+        color = dotPalette[((Math.floor(h * n) % n) + n) % n];
+        ctx.fillStyle = color;
       }
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);
-      ctx.beginPath();
-      ctx.arc(
-        d.x + d.dx,
-        d.y + d.dy,
-        Math.max(0.5, d.base * d.scale * (1 + wave * cfg.shimmer)),
-        0,
-        Math.PI * 2,
-      );
-      ctx.fill();
+      const radius = Math.max(0.5, size * d.scale * (1 + wave * cfg.shimmer));
+      if (d.sprite) {
+        // scaled with the dot, so the blur grows a little with it
+        const h = (d.sprite.half * radius) / d.base;
+        ctx.drawImage(
+          tinted(d.sprite, color),
+          d.x + d.dx - h,
+          d.y + d.dy - h,
+          h * 2,
+          h * 2,
+        );
+      } else {
+        ctx.beginPath();
+        ctx.arc(d.x + d.dx, d.y + d.dy, radius, 0, Math.PI * 2);
+        ctx.fill();
+      }
     }
     ctx.globalAlpha = 1;
   }

@@ -18,7 +18,6 @@ export default function ResearchPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Research"
         title={
           <>
             Research is where <em>we come from.</em>

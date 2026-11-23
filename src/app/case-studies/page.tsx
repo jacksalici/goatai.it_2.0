@@ -18,7 +18,6 @@ export default function CaseStudiesPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Case studies"
         title={
           <>
             Out of the lab, <em>onto the floor.</em>

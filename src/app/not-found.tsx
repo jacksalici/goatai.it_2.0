@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 export default function NotFound() {
   return (
     <PageHeader
-      eyebrow="404"
       title={
         <>
           This goat <em>wandered off.</em>
