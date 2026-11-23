@@ -8,7 +8,8 @@ import { caseStudies } from "@/lib/case-studies";
 
 export const metadata: Metadata = {
   title: "Case studies",
-  description: "How GoatAI puts computer vision to work in manufacturing, transportation and retail.",
+  description:
+    "How GoatAI puts computer vision to work in manufacturing, transportation and retail.",
 };
 
 const arts: ServiceArtName[] = ["terrain", "loop", "roots"];
@@ -36,12 +37,17 @@ export default function CaseStudiesPage() {
                 <ArrowUpRight className="size-5 -translate-x-1 translate-y-1 text-foreground opacity-0 transition duration-300 group-hover:translate-0 group-hover:opacity-100" />
               </div>
               <h2 className="mt-6 mb-3.5 font-semibold tracking-[-0.03em] text-[28px] leading-[1.15]">
-                <Link href={`/case-studies/${study.slug}`} className="after:absolute after:inset-0">
+                <Link
+                  href={`/case-studies/${study.slug}`}
+                  className="after:absolute after:inset-0"
+                >
                   {study.title}
                 </Link>
               </h2>
               <p className="leading-normal text-muted-foreground">{study.summary}</p>
-              <p className="mt-6 font-semibold tracking-[-0.03em] text-3xl">{study.metrics[0].value}</p>
+              <p className="mt-6 font-semibold tracking-[-0.03em] text-3xl">
+                {study.metrics[0].value}
+              </p>
               <p className="text-sm text-muted-foreground">{study.metrics[0].label}</p>
             </div>
             <ServiceArt

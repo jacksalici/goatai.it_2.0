@@ -1,0 +1,9 @@
+[fmt]
+# House style: 2-space indent, 88-column lines.
+useTabs = false
+tabWidth = 2
+printWidth = 88
+# Sort and group imports.
+sortImports = true
+# SVG files are static assets, not source code.
+ignorePatterns = ["**/*.svg"]

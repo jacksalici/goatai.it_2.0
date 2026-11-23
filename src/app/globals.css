@@ -97,7 +97,8 @@
 @utility aurora-orbs {
   background-image:
     radial-gradient(
-      circle min(240px, 34vw) at calc(var(--glow-x, 50%) + 24%) calc(var(--glow-y, 40%) + 16%),
+      circle min(240px, 34vw) at calc(var(--glow-x, 50%) + 24%)
+        calc(var(--glow-y, 40%) + 16%),
       color-mix(in oklab, var(--coral) 55%, transparent),
       transparent 100%
     ),

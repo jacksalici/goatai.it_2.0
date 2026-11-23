@@ -6,8 +6,8 @@ Each doc explains **what** an element is, **why** it looks and behaves the way i
 
 ## Index
 
-| Doc | What it covers |
-|---|---|
+| Doc                       | What it covers                                                                                                                  |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
 | [Dot field](dot-field.md) | The animated dot grid of the hero and the "Ask" section, and its variants: Gradient dot field, Faded dot field, Depth dot field |
 
 ## Conventions
@@ -29,18 +29,24 @@ One or two sentences: what it is and where it appears on the site.
 Source: [path/to/file.tsx](../src/path/to/file.tsx)
 
 ## Anatomy
+
 The parts it is made of.
 
 ## Behavior
+
 How it moves and reacts (hover, click, scroll, reduced motion).
 
 ## Settings
+
 The knobs that change it and what each one does.
 
 ## Variants
+
 ### Variant name
+
 What is different, where it is used, how to get it in code.
 
 ## Do / Don't
+
 Rules that keep it on brand.
 ```

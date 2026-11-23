@@ -30,31 +30,31 @@ Content passed as children is rendered on top of all layers.
 
 Every knob lives in `dotFieldDefaults` at the top of the source file. Each pulse overrides the few it tunes (`dotFieldPulses`, right below), and a single instance can override any of them through the `settings` prop, which wins over both. Colors are not settings: they come from the palette in [src/app/colors.css](../src/app/colors.css).
 
-| Group | Settings | What they control |
-|---|---|---|
-| Gradient | `driftSpeed`, `driftRange`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps` | Speed, travel distance and shape of the color areas, grain strength |
-| Dots | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (a tighter spacing on small screens, nudged slightly to even out the margins), dot sizes, idle pulse |
-| Pulse | `dotPop`, `popChance`, `spreadChance`, `spreadDelay`, `spreadFade`, `spreadSlow`, `spreadMin` | Size a popping dot reaches, how often dots pop on their own, how likely and how fast a pop passes to a neighbor, how a chain fades, slows down and ends. Every dot in a chain adds to the total number of pops, so a stronger spread needs a lower `popChance` to keep the same density. |
-| Bounce | `popHold`, `popStiffness`, `popDamping` | How long a dot stays big, speed and bounce of the spring (only with the `bounce` pulse) |
-| Breath | `popBreath`, `popInhale` | Length of a breath and share of it spent swelling (only with `breathe` and `exhale`) |
-| Cursor | `influence`, `magnify`, `repel`, `hoverRadius` | How far the cursor reaches and how much dots grow and move |
-| Ripple | `ripple`, `rippleSpeed`, `rippleLife` | Strength, speed and duration of the click wave |
-| Labels | `labelEvery`, `labelHold`, `maxOpen`, `morphMs`, `hoverLinger` | Timing of automatic labels and of the morph |
-| Fade | `fadeStart`, `fadeMin`, `fadeMax` | Where and how strongly dots fade toward the top (only with `fade`) |
-| Depth fade | `depthKnee`, `depthKneeOpacity`, `depthSharpFrom`, `depthBlur` | Opacity ramp and progressive blur (only with `fade="depth"`) |
+| Group      | Settings                                                                                               | What they control                                                                                                                                                                                                                                                                        |
+| ---------- | ------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Gradient   | `driftSpeed`, `driftRange`, `sway`, `blobTightness`, `colorSharpness`, `grain`, `grainFps`             | Speed, travel distance and shape of the color areas, grain strength                                                                                                                                                                                                                      |
+| Dots       | `spacing`, `spacingMobile`, `dotSmall`, `dotMedium`, `dotLarge`, `labelDot`, `shimmer`, `shimmerSpeed` | Grid density (a tighter spacing on small screens, nudged slightly to even out the margins), dot sizes, idle pulse                                                                                                                                                                        |
+| Pulse      | `dotPop`, `popChance`, `spreadChance`, `spreadDelay`, `spreadFade`, `spreadSlow`, `spreadMin`          | Size a popping dot reaches, how often dots pop on their own, how likely and how fast a pop passes to a neighbor, how a chain fades, slows down and ends. Every dot in a chain adds to the total number of pops, so a stronger spread needs a lower `popChance` to keep the same density. |
+| Bounce     | `popHold`, `popStiffness`, `popDamping`                                                                | How long a dot stays big, speed and bounce of the spring (only with the `bounce` pulse)                                                                                                                                                                                                  |
+| Breath     | `popBreath`, `popInhale`                                                                               | Length of a breath and share of it spent swelling (only with `breathe` and `exhale`)                                                                                                                                                                                                     |
+| Cursor     | `influence`, `magnify`, `repel`, `hoverRadius`                                                         | How far the cursor reaches and how much dots grow and move                                                                                                                                                                                                                               |
+| Ripple     | `ripple`, `rippleSpeed`, `rippleLife`                                                                  | Strength, speed and duration of the click wave                                                                                                                                                                                                                                           |
+| Labels     | `labelEvery`, `labelHold`, `maxOpen`, `morphMs`, `hoverLinger`                                         | Timing of automatic labels and of the morph                                                                                                                                                                                                                                              |
+| Fade       | `fadeStart`, `fadeMin`, `fadeMax`                                                                      | Where and how strongly dots fade toward the top (only with `fade`)                                                                                                                                                                                                                       |
+| Depth fade | `depthKnee`, `depthKneeOpacity`, `depthSharpFrom`, `depthBlur`                                         | Opacity ramp and progressive blur (only with `fade="depth"`)                                                                                                                                                                                                                             |
 
 The position, color and drift of each gradient blob is set in the `blobs` array, right below the settings.
 
 ### Props
 
-| Prop | Default | Effect |
-|---|---|---|
-| `gradient` | `true` | Draws the animated gradient and grain. When `false`, set the background with `className`. |
-| `dotColor` | `"background"` | Palette variable the dots are drawn with. |
-| `fade` | `false` | `true`: dots fade in from the top. `"depth"`: they also blur toward the top (see Depth dot field). |
-| `pulse` | `"bounce"` | How dots swell on their own: `"static"`, `"bounce"`, `"breathe"` or `"exhale"` (see Pulses). |
-| `labels` | none | Label texts and positions, `x` and `y` from 0 to 1. Each snaps to the nearest grid point. |
-| `settings` | none | Overrides for any value in `dotFieldDefaults`. |
+| Prop       | Default        | Effect                                                                                             |
+| ---------- | -------------- | -------------------------------------------------------------------------------------------------- |
+| `gradient` | `true`         | Draws the animated gradient and grain. When `false`, set the background with `className`.          |
+| `dotColor` | `"background"` | Palette variable the dots are drawn with.                                                          |
+| `fade`     | `false`        | `true`: dots fade in from the top. `"depth"`: they also blur toward the top (see Depth dot field). |
+| `pulse`    | `"bounce"`     | How dots swell on their own: `"static"`, `"bounce"`, `"breathe"` or `"exhale"` (see Pulses).       |
+| `labels`   | none           | Label texts and positions, `x` and `y` from 0 to 1. Each snaps to the nearest grid point.          |
+| `settings` | none           | Overrides for any value in `dotFieldDefaults`.                                                     |
 
 ## Variants
 

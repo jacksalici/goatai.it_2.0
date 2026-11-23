@@ -6,7 +6,8 @@ import { posts } from "@/lib/posts";
 
 export const metadata: Metadata = {
   title: "Blog",
-  description: "Field notes from GoatAI: research, projects and lessons from putting AI to work.",
+  description:
+    "Field notes from GoatAI: research, projects and lessons from putting AI to work.",
 };
 
 export default function BlogPage() {

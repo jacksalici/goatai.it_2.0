@@ -19,7 +19,8 @@ export function Services() {
       >
         <p className="mb-1 text-[17px] leading-normal text-muted-foreground">
           Twenty years of research in computer vision and human behavior,
-          <br className="max-md:hidden" /> put to work in transportation, manufacturing, retail and safety.
+          <br className="max-md:hidden" /> put to work in transportation, manufacturing,
+          retail and safety.
         </p>
       </SectionHeading>
 
@@ -36,8 +37,12 @@ export function Services() {
                 </span>
                 <ArrowUpRight className="size-5 -translate-x-1 translate-y-1 opacity-0 transition duration-300 group-hover:translate-0 group-hover:opacity-100" />
               </div>
-              <h3 className="mt-6 mb-3.5 text-xl font-semibold tracking-[-0.2px]">{service.title}</h3>
-              <p className="max-w-78 leading-normal text-muted-foreground">{service.body}</p>
+              <h3 className="mt-6 mb-3.5 text-xl font-semibold tracking-[-0.2px]">
+                {service.title}
+              </h3>
+              <p className="max-w-78 leading-normal text-muted-foreground">
+                {service.body}
+              </p>
             </div>
             <ServiceArt
               name={service.art}

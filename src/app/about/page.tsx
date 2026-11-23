@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 
 export const metadata: Metadata = {
   title: "About",
-  description: "GoatAI is a spin-off of the University of Modena and Reggio Emilia, building AI powered by humans.",
+  description:
+    "GoatAI is a spin-off of the University of Modena and Reggio Emilia, building AI powered by humans.",
 };
 
 const stats = [
@@ -47,8 +48,12 @@ export default function AboutPage() {
         <dl className="grid gap-px overflow-hidden rounded-3xl border bg-border sm:grid-cols-3">
           {stats.map((stat) => (
             <div key={stat.label} className="bg-background p-6 sm:p-7.5">
-              <dd className="font-semibold tracking-[-0.03em] text-[56px] leading-none text-brand">{stat.value}</dd>
-              <dt className="mt-3 max-w-60 text-sm text-muted-foreground">{stat.label}</dt>
+              <dd className="font-semibold tracking-[-0.03em] text-[56px] leading-none text-brand">
+                {stat.value}
+              </dd>
+              <dt className="mt-3 max-w-60 text-sm text-muted-foreground">
+                {stat.label}
+              </dt>
             </div>
           ))}
         </dl>
@@ -60,24 +65,34 @@ export default function AboutPage() {
         </h2>
         <div className="space-y-5 text-[17px] leading-relaxed text-muted-foreground">
           <p>
-            Goats are curious, stubborn and remarkably good at getting to places nobody else can reach. That's
-            roughly how we approach AI: start from the hard problem, refuse to give up on it, and find a path
-            that actually holds weight.
+            Goats are curious, stubborn and remarkably good at getting to places nobody
+            else can reach. That's roughly how we approach AI: start from the hard
+            problem, refuse to give up on it, and find a path that actually holds
+            weight.
           </p>
           <p>
-            We're a small herd of engineers and researchers based in Modena, working with companies across
-            Italy and Europe. We still collaborate closely with the university, which keeps us honest and keeps
-            our models current.
+            We're a small herd of engineers and researchers based in Modena, working
+            with companies across Italy and Europe. We still collaborate closely with
+            the university, which keeps us honest and keeps our models current.
           </p>
         </div>
       </section>
 
       <section className="shell pb-17 sm:pb-24">
-        <SectionHeading eyebrow="What we believe" title={<>How the <em>herd works.</em></>} />
+        <SectionHeading
+          eyebrow="What we believe"
+          title={
+            <>
+              How the <em>herd works.</em>
+            </>
+          }
+        />
         <div className="grid gap-5 md:grid-cols-3">
           {values.map((value) => (
             <div key={value.title} className="rounded-3xl border p-6 sm:p-7.5">
-              <h3 className="mb-3.5 text-xl font-semibold tracking-[-0.2px]">{value.title}</h3>
+              <h3 className="mb-3.5 text-xl font-semibold tracking-[-0.2px]">
+                {value.title}
+              </h3>
               <p className="leading-normal text-muted-foreground">{value.body}</p>
             </div>
           ))}
@@ -93,7 +108,12 @@ export default function AboutPage() {
             <Button asChild size="lg" variant="secondary">
               <Link href="/team">Our team</Link>
             </Button>
-            <Button asChild size="lg" variant="outline" className="border-background/40 bg-transparent text-background">
+            <Button
+              asChild
+              size="lg"
+              variant="outline"
+              className="border-background/40 bg-transparent text-background"
+            >
               <Link href="/contact">Get in touch</Link>
             </Button>
           </div>

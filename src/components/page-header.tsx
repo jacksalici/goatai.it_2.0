@@ -14,7 +14,9 @@ export function PageHeader({
         {title}
       </h1>
       {intro && (
-        <p className="mt-6 max-w-160 text-base leading-normal text-muted-foreground sm:text-[17px]">{intro}</p>
+        <p className="mt-6 max-w-160 text-base leading-normal text-muted-foreground sm:text-[17px]">
+          {intro}
+        </p>
       )}
       {children}
     </header>
