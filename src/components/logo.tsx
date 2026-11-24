@@ -17,7 +17,10 @@ export function Logo({ className }: { className?: string }) {
     <Link
       href="/"
       aria-label="GoatAI home"
-      className={cn("inline-flex items-center gap-1.5 text-[19px] font-semibold tracking-[-0.025em] sm:text-[22px]", className)}
+      className={cn(
+        "inline-flex items-center gap-1.5 text-[19px] font-semibold tracking-[-0.025em] sm:text-[22px]",
+        className,
+      )}
     >
       <Pictogram />
       GoatAI

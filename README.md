@@ -5,13 +5,16 @@
 - [Next.js](https://nextjs.org) (App Router) + React + TypeScript
 - [Tailwind CSS v4](https://tailwindcss.com)
 - [shadcn/ui](https://ui.shadcn.com) components, [Lucide](https://lucide.dev) icons
+- [`bun fmt`](https://bun.com/docs/format) for formatting
 
 ## Getting started
 
 ```bash
-npm install
-npm run dev    # http://localhost:3000
-npm run build  # production build
+bun install
+bun run dev    # http://localhost:3000
+bun run build  # production build
+bun run format # format (bun fmt)
+bun run check  # format check and type check (bun fmt + tsc)
 ```
 
 ## Structure

@@ -25,7 +25,6 @@ export default function ContactPage() {
   return (
     <>
       <PageHeader
-        eyebrow="Contact"
         title={
           <>
             Let&apos;s talk about <em>your problem.</em>
@@ -45,7 +44,9 @@ export default function ContactPage() {
           >
             <Icon className="size-5 text-brand" strokeWidth={1.33} />
             <p className="mt-6 text-sm text-muted-foreground">{label}</p>
-            <p className="mt-1 text-lg transition-colors group-hover:text-brand">{value}</p>
+            <p className="mt-1 text-lg transition-colors group-hover:text-brand">
+              {value}
+            </p>
           </a>
         ))}
       </section>

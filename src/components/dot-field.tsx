@@ -67,7 +67,7 @@ export const dotFieldDefaults = {
   fadeMax: 0.95, // dot opacity at the bottom
 
   // Depth fade (only with `fade="depth"`)
-  depthKnee: 0.30, // 0–1 from the top: where the opacity ramp turns steep
+  depthKnee: 0.3, // 0–1 from the top: where the opacity ramp turns steep
   depthKneeOpacity: 0.2, // dot opacity at the knee (0 at the top, 1 at the bottom)
   depthSharpFrom: 0.85, // 0–1 from the top: below this, dots are sharp
   depthBlur: 0.35, // blur radius at the top, as a fraction of the spacing
@@ -361,23 +361,18 @@ function readColor(el: Element, name: string): RGB {
 }
 
 /* OKLab conversion (https://bottosson.github.io/posts/oklab), so blends look even to the eye. */
-const toLinear = (c: number) =>
-  (c /= 255) <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+const toLinear = (c: number) => {
+  const v = c / 255;
+  return v <= 0.04045 ? v / 12.92 : ((v + 0.055) / 1.055) ** 2.4;
+};
 const fromLinear = (c: number) =>
-  255 *
-  (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
+  255 * (c <= 0.0031308 ? 12.92 * c : 1.055 * Math.max(c, 0) ** (1 / 2.4) - 0.055);
 
 function rgbToOklab([r, g, b]: RGB): RGB {
   const [lr, lg, lb] = [toLinear(r), toLinear(g), toLinear(b)];
-  const l = Math.cbrt(
-    0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb,
-  );
-  const m = Math.cbrt(
-    0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb,
-  );
-  const s = Math.cbrt(
-    0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb,
-  );
+  const l = Math.cbrt(0.4122214708 * lr + 0.5363325363 * lg + 0.0514459929 * lb);
+  const m = Math.cbrt(0.2119034982 * lr + 0.6806995451 * lg + 0.1073969566 * lb);
+  const s = Math.cbrt(0.0883024619 * lr + 0.2817188376 * lg + 0.6299787005 * lb);
   return [
     0.2104542553 * l + 0.793617785 * m - 0.0040720468 * s,
     1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s,
@@ -431,7 +426,8 @@ function blurredDot(radius: number, sigma: number, dpr: number): Sprite {
         for (let k = -kr; k <= kr; k++) {
           const xx = horizontal ? x + k : x;
           const yy = horizontal ? y : y + k;
-          if (xx >= 0 && xx < n && yy >= 0 && yy < n) v += a[yy * n + xx] * kernel[k + kr];
+          if (xx >= 0 && xx < n && yy >= 0 && yy < n)
+            v += a[yy * n + xx] * kernel[k + kr];
         }
         out[y * n + x] = v / ksum;
       }
@@ -475,9 +471,7 @@ function buildPalette(colors: RGB[], hold: number, steps = 32): string[] {
     for (let s = 0; s < steps; s++) {
       const p = Math.max(0, (s / steps - hold) / (1 - hold));
       const e = p * p * (3 - 2 * p);
-      out.push(
-        css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))),
-      );
+      out.push(css(oklabToRgb(...(a.map((v, k) => v + (b[k] - v) * e) as RGB))));
     }
   }
   return out;
@@ -619,10 +613,7 @@ function startDotField({
     if (gradientCanvas && gctx) {
       gradientCanvas.width = Math.ceil(W / 8);
       gradientCanvas.height = Math.ceil(H / 8);
-      gradient = gctx.createImageData(
-        gradientCanvas.width,
-        gradientCanvas.height,
-      );
+      gradient = gctx.createImageData(gradientCanvas.width, gradientCanvas.height);
     }
 
     const { spacing, cols, rows, ox, oy } = fitGrid(
@@ -817,9 +808,7 @@ function startDotField({
         cfg.spreadFade ** nextGen >= cfg.spreadMin &&
         Math.random() < cfg.spreadChance
       ) {
-        const idle = d.neighbors.filter(
-          (n) => !n.popStart && !n.popAt && n.pop < 0.05,
-        );
+        const idle = d.neighbors.filter((n) => !n.popStart && !n.popAt && n.pop < 0.05);
         const n = idle[Math.floor(Math.random() * idle.length)];
         if (n) {
           n.popGen = nextGen;
@@ -833,9 +822,7 @@ function startDotField({
       d.vp += ((target - d.pop) * cfg.popStiffness - d.vp * cfg.popDamping) * dt;
       d.pop += d.vp * dt;
     } else {
-      d.pop = d.popStart
-        ? amp * breath((t - d.popStart) / d.popDur, cfg.popInhale)
-        : 0;
+      d.pop = d.popStart ? amp * breath((t - d.popStart) / d.popDur, cfg.popInhale) : 0;
     }
   }
 
@@ -898,7 +885,7 @@ function startDotField({
       if (multiColor) {
         const h = d.hue + cycle + kick * cfg.colorRipple;
         const n = dotPalette.length;
-        color = dotPalette[(((Math.floor(h * n) % n) + n) % n)];
+        color = dotPalette[((Math.floor(h * n) % n) + n) % n];
         ctx.fillStyle = color;
       }
       ctx.globalAlpha = d.alpha * (0.88 + 0.12 * wave);

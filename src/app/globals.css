@@ -97,7 +97,8 @@
 @utility aurora-orbs {
   background-image:
     radial-gradient(
-      circle min(240px, 34vw) at calc(var(--glow-x, 50%) + 24%) calc(var(--glow-y, 40%) + 16%),
+      circle min(240px, 34vw) at calc(var(--glow-x, 50%) + 24%)
+        calc(var(--glow-y, 40%) + 16%),
       color-mix(in oklab, var(--coral) 55%, transparent),
       transparent 100%
     ),
@@ -129,8 +130,13 @@
     font-weight: 400;
     letter-spacing: -0.015em;
   }
-  :is(h1, h2, h3) em {
+  :is(h1, h3) em {
     font-size: 1.07em; /* optical match to DM Sans x-height */
+  }
+  /* h2s stay in a single font: the accent is reserved for h1 titles. */
+  h2 em {
+    font: inherit;
+    letter-spacing: inherit;
   }
   button:not(:disabled) {
     @apply cursor-pointer;

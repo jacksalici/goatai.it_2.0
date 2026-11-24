@@ -15,7 +15,10 @@ export function SiteHeader() {
   const pathname = usePathname();
 
   return (
-    <nav aria-label="Main navigation" className="shell relative z-20 flex h-21 items-center md:h-27">
+    <nav
+      aria-label="Main navigation"
+      className="shell relative z-20 flex h-21 items-center md:h-27"
+    >
       <Logo />
 
       <div

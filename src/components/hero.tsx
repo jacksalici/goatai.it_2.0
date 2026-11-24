@@ -16,7 +16,8 @@ export function Hero() {
           </em>
         </h1>
         <p className="mt-7 px-2.5 text-base leading-normal text-muted-foreground sm:text-[17px]">
-          Born in a university lab in Modena, we build AI and computer vision tailored to your needs.
+          Born in a university lab in Modena, we build AI and computer vision tailored
+          to your needs.
         </p>
         <div className="mt-7 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button asChild size="lg" className="w-60 sm:w-auto">
