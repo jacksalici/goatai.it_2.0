@@ -73,7 +73,6 @@ export default function LabPage() {
       </div>
 
       <PageHeader
-        eyebrow="Lab"
         title={
           <>
             Ideas, <em>before they ship.</em>
