@@ -102,7 +102,7 @@ export type DotFieldPulse = keyof typeof dotFieldPulses;
 export type DotFieldLabel = { text: string; x: number; y: number };
 
 /** Gradient color areas: palette variable, position (0–1 from top-left), drift and tightness. */
-const blobs = [
+const heroBlobs = [
   { color: "blue", x: 0.18, y: 0.2, ax: 0.08, ay: 0.1, fx: 1.1, fy: 0.9, k: 1 },
   {
     color: "blue",
@@ -156,6 +156,33 @@ const blobs = [
   },
 ];
 
+/**
+ * Color areas for `gradient="dots"`. The fade hides the top of the box, so the
+ * colors sit in the lower, visible band, side by side: blue on the left (the
+ * largest), periwinkle in the middle, coral on the right. Vertical drift is
+ * kept small so they do not wander into the faded top.
+ */
+const stencilBlobs = [
+  { color: "blue", x: 0.12, y: 0.75, ax: 0.08, ay: 0.03, fx: 1.1, fy: 0.9, k: 0.9 },
+  { color: "blue", x: 0.36, y: 0.95, ax: 0.1, ay: 0.03, fx: 0.7, fy: 1.3, k: 1.2 },
+  {
+    color: "periwinkle",
+    x: 0.58,
+    y: 0.65,
+    ax: 0.1,
+    ay: 0.04,
+    fx: 0.8,
+    fy: 1.2,
+    k: 0.8,
+  },
+  { color: "periwinkle", x: 0.7, y: 1.0, ax: 0.08, ay: 0.03, fx: 0.6, fy: 1.1, k: 1.1 },
+  { color: "coral", x: 0.9, y: 0.72, ax: 0.05, ay: 0.04, fx: 0.9, fy: 0.7, k: 1.3 },
+  { color: "coral", x: 1.0, y: 0.98, ax: 0.04, ay: 0.03, fx: 1, fy: 0.8, k: 1.2 },
+];
+
+const blobLayouts = { hero: heroBlobs, stencil: stencilBlobs };
+export type DotFieldBlobs = keyof typeof blobLayouts;
+
 const noLabels: DotFieldLabel[] = [];
 
 /* -------------------------------------------------------------------------- */
@@ -163,14 +190,20 @@ const noLabels: DotFieldLabel[] = [];
 /**
  * Animated dot field. Children render on top of the effect.
  * - `gradient`: moving color background; when off, set the background via `className`.
+ *   `"dots"`: the same moving gradient colors the dots instead of the background,
+ *   as if seen through holes in a dark sheet; set the background via `className`.
  * - `dotColor`: palette variable the dots are drawn with. Pass a list to give every
- *   dot one of those colors, flowing between them in diagonal waves.
+ *   dot one of those colors, flowing between them in diagonal waves. Ignored with
+ *   `gradient="dots"`.
+ * - `blobs`: layout of the gradient color areas, `"hero"` or `"stencil"`. Defaults
+ *   to `"stencil"` with `gradient="dots"`, `"hero"` otherwise.
  * - `fade`: dots fade in from the top; `"depth"` also blurs them toward the top.
  */
 export function DotField({
   labels = noLabels,
   gradient = true,
   dotColor = "background",
+  blobs,
   fade = false,
   pulse = "bounce",
   settings,
@@ -178,8 +211,9 @@ export function DotField({
   children,
 }: {
   labels?: DotFieldLabel[];
-  gradient?: boolean;
+  gradient?: boolean | "dots";
   dotColor?: string | string[];
+  blobs?: DotFieldBlobs;
   fade?: boolean | "depth";
   pulse?: DotFieldPulse;
   settings?: Partial<DotFieldSettings>;
@@ -203,19 +237,23 @@ export function DotField({
         chips: chipRefs.current,
         labels,
         dotColor,
+        gradientDots: gradient === "dots",
+        blobs: blobLayouts[blobs ?? (gradient === "dots" ? "stencil" : "hero")],
         fade,
         pulse,
         cfg: { ...dotFieldDefaults, ...dotFieldPulses[pulse], ...settings },
       }),
-    [labels, dotColor, fade, pulse, settings],
+    [labels, dotColor, gradient, blobs, fade, pulse, settings],
   );
+
+  const gradientBackground = gradient === true;
 
   return (
     <div
       ref={rootRef}
       className={cn(
         "relative isolate overflow-hidden",
-        gradient && "bg-blue",
+        gradientBackground && "bg-blue",
         className,
       )}
       style={
@@ -226,7 +264,7 @@ export function DotField({
         } as React.CSSProperties
       }
     >
-      {gradient && (
+      {gradientBackground && (
         <>
           <canvas
             ref={gradientRef}
@@ -489,12 +527,14 @@ function fitGrid(W: number, H: number, target: number) {
 
 function startDotField({
   root,
-  gradientCanvas,
+  gradientCanvas: shownGradient,
   grainCanvas,
   dotCanvas,
   chips,
   labels,
   dotColor: dotColorName,
+  gradientDots,
+  blobs: layout,
   fade,
   pulse,
   cfg,
@@ -506,10 +546,16 @@ function startDotField({
   chips: HTMLDivElement[];
   labels: DotFieldLabel[];
   dotColor: string | string[];
+  gradientDots: boolean;
+  blobs: typeof heroBlobs;
   fade: boolean | "depth";
   pulse: DotFieldPulse;
   cfg: DotFieldSettings;
 }) {
+  // With `gradient="dots"` the gradient is drawn off screen and only shows
+  // through the dots.
+  const gradientCanvas =
+    shownGradient ?? (gradientDots ? document.createElement("canvas") : null);
   const gctx = gradientCanvas?.getContext("2d");
   const nctx = grainCanvas?.getContext("2d");
   const ctx = dotCanvas.getContext("2d")!;
@@ -522,7 +568,7 @@ function startDotField({
     cfg.colorHold,
   );
   const multiColor = dotPalette.length > 1;
-  const blobColors = blobs.map((b) => rgbToOklab(readColor(root, b.color)));
+  const blobColors = layout.map((b) => rgbToOklab(readColor(root, b.color)));
 
   // Grain: one random tile, redrawn at a random offset.
   const tile = document.createElement("canvas");
@@ -679,7 +725,7 @@ function startDotField({
     if (!gctx || !gradient) return;
     const { width: gw, height: gh, data } = gradient;
     const asp = W / H;
-    const centers = blobs.map((b) => [
+    const centers = layout.map((b) => [
       (b.x + cfg.driftRange * b.ax * Math.sin(drift * b.fx)) * asp,
       b.y + cfg.driftRange * b.ay * Math.cos(drift * b.fy),
       cfg.blobTightness * b.k * cfg.colorSharpness,
@@ -870,6 +916,16 @@ function startDotField({
       }
     }
     ctx.globalAlpha = 1;
+
+    // Gradient-lit dots: the dots drawn so far act as a stencil; the gradient,
+    // stretched over the whole box, replaces their color and keeps their alpha.
+    if (gradientDots && gradientCanvas) {
+      ctx.globalCompositeOperation = "source-in";
+      ctx.imageSmoothingEnabled = true;
+      ctx.imageSmoothingQuality = "high";
+      ctx.drawImage(gradientCanvas, 0, 0, W, H);
+      ctx.globalCompositeOperation = "source-over";
+    }
   }
 
   // Loop
