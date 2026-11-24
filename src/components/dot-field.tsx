@@ -165,7 +165,16 @@ const heroBlobs = [
 const stencilBlobs = [
   { color: "blue", x: 0.12, y: 0.75, ax: 0.08, ay: 0.03, fx: 1.1, fy: 0.9, k: 0.9 },
   { color: "blue", x: 0.36, y: 0.95, ax: 0.1, ay: 0.03, fx: 0.7, fy: 1.3, k: 1.2 },
-  { color: "periwinkle", x: 0.58, y: 0.65, ax: 0.1, ay: 0.04, fx: 0.8, fy: 1.2, k: 0.8 },
+  {
+    color: "periwinkle",
+    x: 0.58,
+    y: 0.65,
+    ax: 0.1,
+    ay: 0.04,
+    fx: 0.8,
+    fy: 1.2,
+    k: 0.8,
+  },
   { color: "periwinkle", x: 0.7, y: 1.0, ax: 0.08, ay: 0.03, fx: 0.6, fy: 1.1, k: 1.1 },
   { color: "coral", x: 0.9, y: 0.72, ax: 0.05, ay: 0.04, fx: 0.9, fy: 0.7, k: 1.3 },
   { color: "coral", x: 1.0, y: 0.98, ax: 0.04, ay: 0.03, fx: 1, fy: 0.8, k: 1.2 },

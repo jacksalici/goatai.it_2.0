@@ -53,7 +53,12 @@ const variants: {
     status: "live",
     note: "The dots of the “Ask” section today: multi-color, fading and blurring toward the top. Shown alone, without the aurora orbs behind them.",
     field: (
-      <DotField gradient={false} dotColor={["blue", "periwinkle", "coral"]} fade="depth" className={box} />
+      <DotField
+        gradient={false}
+        dotColor={["blue", "periwinkle", "coral"]}
+        fade="depth"
+        className={box}
+      />
     ),
   },
 ];
@@ -98,7 +103,13 @@ export default function LabPage() {
                   variant="outline"
                   className="gap-1.5 px-2.5 py-1 text-xs font-normal text-muted-foreground"
                 >
-                  <span className={v.status === "live" ? "size-1.5 rounded-full bg-brand" : "size-1.5 rounded-full bg-coral"} />
+                  <span
+                    className={
+                      v.status === "live"
+                        ? "size-1.5 rounded-full bg-brand"
+                        : "size-1.5 rounded-full bg-coral"
+                    }
+                  />
                   {v.status === "live" ? "On the home page" : "Experiment"}
                 </Badge>
                 <p className="leading-normal text-muted-foreground">{v.note}</p>
